@@ -1,5 +1,5 @@
 __precompile__(true)
-module CSV
+module uCSV
 
 using DataFrames, Nulls
 
