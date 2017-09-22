@@ -36,6 +36,22 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
     end
 end
 
+function _readline(source::IO, comment::Null)
+    line = readline(source)
+    while isempty(line) && !eof(source)
+        line = readline(source)
+    end
+    return line
+end
+
+function _readline(source::IO, comment)
+    line = readline(source)
+    while startswith(line, comment) || isempty(line) && !eof(source)
+        line = readline(source)
+    end
+    return line
+end
+
 function DataFrames.DataFrame(data, colnames::Vector{String})
     DataFrames.DataFrame(data, Symbol.(colnames))
 end

@@ -6,7 +6,7 @@ function read(fullpath::Union{String,IO};
               encodings::Dict{String,Any}=Dict{String, Any}(),
               header::Union{Integer,Vector{String}}=0,
               skiprows::AbstractVector{Int}=Vector{Int}(),
-              types::Union{Type,COLMAP{Type},Vector{Type}}=Dict{Int,Type}(),
+              types::Union{DataType,COLMAP{DataType},Vector{DataType}}=Dict{Int,DataType}(),
               isnullable::Union{Bool,COLMAP{Bool},Vector{Bool}}=Dict{Int,Bool}(),
               iscategorical::Union{Bool, COLMAP{Bool}, Vector{Bool}}=Dict{Int,Bool}(),
               parsers::Union{Function, COLMAP{Function}, Vector{Function}}=Dict{Int,Function}(),
