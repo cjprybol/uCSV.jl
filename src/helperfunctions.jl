@@ -35,3 +35,7 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
               """)
     end
 end
+
+function DataFrames.DataFrame(data, colnames::Vector{String})
+    DataFrames.DataFrame(data, Symbol.(colnames))
+end

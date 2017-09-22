@@ -6,14 +6,15 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
     colnames = Vector{String}()
     if isa(header, Vector{String})
         colnames = header
-    else
-        @assert isa(header, Int)
+    elseif header > 0
+        line = readline(source)
+        currentline += 1
         while currentline < header
-            readline(source)
+            line = readline(source)
             currentline += 1
         end
         if currentline == header
-            line = readline(source)
+            println("finding header")
             fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             while e
                 if eof(source)
@@ -24,6 +25,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
                 end
             end
             colnames = convert(Vector{String}, fields)
+            @show colnames
         end
     end
 
@@ -52,7 +54,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
         if currentline == 1
             numcols = length(fields)
             rawstrings = Array{String, 2}(typedetectrows, numcols)
-            isquoted = Vector{Bool}(numcols)
+            isquoted = falses(numcols)
         elseif length(fields) != numcols
             handlemalformed(numcols, length(fields), currentline, skipmalformed)
         end
@@ -61,13 +63,15 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
     end
 
     if currentline == 0
-        return colnames, []
+        return Any[], colnames
     elseif currentline < typedetectrows
         rawstrings = rawstrings[1:currentline, :]
     end
 
     numcols = size(rawstrings, 2)
     index2type::Dict{Int, Type} = getintdict(types, numcols, colnames)
+    @show index2type
+    @show isquoted
     for (i, iq) in enumerate(isquoted)
         if !haskey(index2type, i) && iq
             index2type[i] = String
@@ -83,16 +87,28 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
         for row in 1:size(rawstrings, 1)
             if haskey(encodings, rawstrings[row, col])
                 vals[row, col] = encodings[rawstrings[row, col]]
+                println("matched $(rawstrings[row, col]) to $(vals[row, col])")
             elseif haskey(index2parser, col)
                 vals[row, col] = index2parser[col](rawstrings[row, col])
+                println("parsed $(rawstrings[row, col]) to $(vals[row, col])")
             elseif haskey(index2type, col)
                 vals[row, col] = parse(index2type[col], rawstrings[row, col])
+                println("converted $(rawstrings[row, col]) to $(vals[row, col]) of type $(index2type[col])")
             else
-                if !isnull(tryparse(Float64, rawstrings[row, col]))
-                    vals[row, col] = parse(Float64, rawstrings[row, col])
-                else
-                    vals[row, col] = string(rawstrings[row, col])
+                tryint = tryparse(Int, rawstrings[row, col])
+                if !isnull(tryint)
+                    println("detected type Int for $(rawstrings[row, col])")
+                    vals[row, col] = get(tryint)
+                    continue
                 end
+                tryfloat = tryparse(Float64, rawstrings[row, col])
+                if !isnull(tryfloat)
+                    println("detected type Float64 for $(rawstrings[row, col])")
+                    vals[row, col] = get(tryfloat)
+                    continue
+                end
+                println("defaulting to String for $(rawstrings[row, col])")
+                vals[row, col] = string(rawstrings[row, col])
             end
         end
     end
@@ -134,7 +150,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
             line = readline(source)
         end
         currentline += 1
-        if in(currentline, skiprows)
+        if in(currentline, skiprows) || isempty(line)
             continue
         end
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
@@ -153,5 +169,5 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header,
             push!(data[i], get(encodings, f, parsers[i](f)))
         end
     end
-    return colnames, data
+    return convert(Vector{Any}, data), colnames
 end

@@ -21,6 +21,8 @@ function read(fullpath::Union{String,IO};
         else
             @assert length(unique(string.(reserved))) == length(reserved)
         end
-        colnames, data = parsesource(source, delim, quotes, escape, comment, encodings, header, skiprows, types, isnullable, iscategorical, parsers, typedetectrows, skipmalformed, trimwhitespace)
-        return colnames, data
+        data, colnames = parsesource(source, delim, quotes, escape, comment, encodings,
+                                     header, skiprows, types, isnullable, iscategorical,
+                                     parsers, typedetectrows, skipmalformed, trimwhitespace)
+        return data, colnames
 end

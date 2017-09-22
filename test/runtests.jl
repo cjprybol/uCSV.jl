@@ -1,201 +1,254 @@
-using uCSV, HTTP, CodecZlib, RDatasets, Base.Test
+using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test
 
-files = joinpath(Pkg.dir("uCSV"), "test", "data")
-@time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv")
-# @time CSV.read(joinpath(files, "iris.csv"), skiprows=2:typemax(Int))
-# @time CSV.read(joinpath(files, "iris.csv"))
-@time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=2:typemax(Int))
-@time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=typemax(Int):typemax(Int))
-# @time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=2:typemax(Int))
-# @time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=10:typemax(Int))
-# @time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=1000:typemax(Int))
-# @time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=10000:typemax(Int))
-# @time CSV.read("/Users/Cameron/Desktop/test_files/yellow_tripdata_2015-01.csv", skiprows=100000:typemax(Int))
+s =
+"""
+1,1.0,a
+2,2.0,b
+3,3.0,c
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1, 2, 3],
+                  [1.0, 2.0, 3.0],
+                  ["a", "b", "c"]]
+@test header == Vector{String}()
+
+s =
+"""
+1.0,1.0,1.0
+2.0,2.0,2.0
+3.0,3.0,3.0
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data ==  Any[[1.0, 2.0, 3.0],
+                   [1.0, 2.0, 3.0],
+                   [1.0, 2.0, 3.0]]
+@test header == Vector{String}()
+
+s =
+"""
+c1,c2,c3
+1,1.0,a
+2,2.0,b
+3,3.0,c
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["c1", "1", "2", "3"],
+                  ["c2", "1.0", "2.0", "3.0"],
+                  ["c3", "a", "b", "c"]]
+@test header == Vector{String}()
 
 
+data, header = uCSV.read(IOBuffer(s), header = 1)
+@test data == Any[[1, 2, 3],
+                  [1.0, 2.0, 3.0],
+                  ["a", "b", "c"]]
+@test header == ["c1", "c2", "c3"]
+
+s =
+"""
+1997,Ford,E350
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
+
+s =
+"""
+1997,Ford,E350
+"""
+data, header = uCSV.read(IOBuffer(s), header = 1)
+@test data == Any[]
+@test header == ["1997", "Ford", "E350"]
+
+s =
+"""
+1997,Ford,E350\n
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
+
+s =
+"""
+"1997","Ford","E350"
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["\"1997\""],
+                  ["\"Ford\""],
+                  ["\"E350\""]]
+@test header == Vector{String}()
+
+s =
+"""
+"1997","Ford","E350"
+"""
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[["1997"],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
+
+s =
+"""
+"19"97,"Fo"rd,E3"50"
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["\"19\"97"],
+                  ["\"Fo\"rd"],
+                  ["E3\"50\""]]
+@test header == Vector{String}()
+
+s =
+"""
+\"\"\"1997\"\"\",\"Ford\",\"E350\"
+"""
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["\"\"\"1997\"\"\""],
+                  ["\"Ford\""],
+                  ["\"E350\""]]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[["1997"],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"', escape='"')
+@test data == Any[["\"1997\""],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
 
 
+# HERE
+s =
+"""
+1997,Ford,E350,"Super, luxurious truck"
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,"Super,, luxurious truck"
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,"Super,,, luxurious truck"
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,Super\\, luxurious truck
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,Super\\,\\, luxurious truck
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,Super\\,\\,\\, luxurious truck
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
 
 
+s = "1997,Ford,E350,\"Super, \"\"luxurious\"\" truck\""
+CSV.parserow(IOBuffer(s), ',', '"', ('"', '"'), '.', false, Dict{Int, Function}())
 
-#
-# s =
-# """
-# c1,c2,c3
-# 1,1.0,a
-# 2,2.0,b
-# 3,3.0,c
-# """
-# CSV.read(IOBuffer(s))
-# @time CSV.read(IOBuffer(s))
-#
-#
-# s =
-# """
-# 1997,Ford,E350
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350\n
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# "1997","Ford","E350"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# "19"97,"Fo"rd,E3"50"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# \"\"\"1997\"\"\",\"Ford\",\"E350\"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,"Super, luxurious truck"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,"Super,, luxurious truck"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,"Super,,, luxurious truck"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,Super\\, luxurious truck
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,Super\\,\\, luxurious truck
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,Super\\,\\,\\, luxurious truck
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-#
-# s = "1997,Ford,E350,\"Super, \"\"luxurious\"\" truck\""
-# CSV.parserow(IOBuffer(s), ',', '"', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,"Super, \"luxurious\" truck"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,Super "luxurious" truck
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 19,97;Ford;E350;Super "luxurious" truck
-# """
-# CSV.parserow(IOBuffer(s), ';', '\\', ('"', '"'), ',', false, Dict{Int, Function}())
-#
-# s = "1997,Ford,E350,\"Go get one now\nthey are going fast\""
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s = "1997,Ford,E350,\"Go get one now\n\nthey are going fast\""
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350,"Go get one now\\nthey are going fast"
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997, Ford, E350
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997, Ford, E350
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997, "Ford" ,E350
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997, "Ford" ,E350
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350," Super luxurious truck "
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
-#
-# s =
-# """
-# 1997,Ford,E350," Super luxurious truck "
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-# s =
-# """
-# Los Angeles,34°03′N,118°15′W
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-# s =
-# """
-# New York City,40°42′46″N,74°00′21″W
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-# s =
-# """
-# Paris,48°51′24″N,2°21′03″E
-# """
-# CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
-#
-#
-# delim = ","
-# escape = "\\"
-# quotes = ("\"", "\"")
-# decimal = "."
-# CSV.parserow(IOBuffer(s), delim, escape, quotes, decimal, trimwhitespace, transforms)
-# # end
-#
-# # end
-#
-#
-#
+s =
+"""
+1997,Ford,E350,"Super, \"luxurious\" truck"
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,Super "luxurious" truck
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+19,97;Ford;E350;Super "luxurious" truck
+"""
+CSV.parserow(IOBuffer(s), ';', '\\', ('"', '"'), ',', false, Dict{Int, Function}())
+
+s = "1997,Ford,E350,\"Go get one now\nthey are going fast\""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s = "1997,Ford,E350,\"Go get one now\n\nthey are going fast\""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350,"Go get one now\\nthey are going fast"
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997, Ford, E350
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997, Ford, E350
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+
+s =
+"""
+1997, "Ford" ,E350
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997, "Ford" ,E350
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350," Super luxurious truck "
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+
+s =
+"""
+1997,Ford,E350," Super luxurious truck "
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+
+s =
+"""
+Los Angeles,34°03′N,118°15′W
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+
+s =
+"""
+New York City,40°42′46″N,74°00′21″W
+"""
+CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+
+s =
+"""
+Paris,48°51′24″N,2°21′03″E
+"""
+
 # @testset "Char parsing"
 # end
 #
@@ -509,6 +562,8 @@ files = joinpath(Pkg.dir("uCSV"), "test", "data")
 #                      I\tam\ta\ttsv
 #                      file\twith\ttwo\trows
 #                      """))
+
+files = joinpath(Pkg.dir("uCSV"), "test", "data")
 
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/loomis.csv.gz #NA's with bools
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/titanic.csv.gz #categorical int

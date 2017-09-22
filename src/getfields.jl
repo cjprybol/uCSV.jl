@@ -12,9 +12,10 @@ function getfields(fields, delim, quotes, escape, trimwhitespace)
             end
         end
         if !isempty(toskip)
-            fields[fi] = field[i for i in eachindex(field) if !in(i, toskip)]
+            fields[fi] = field[[i for i in eachindex(field) if !in(i, toskip)]]
         end
         isquoted[fi] = quoted
+        @show field, quoted
     end
     return fields, isquoted, false
 end

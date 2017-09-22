@@ -21,7 +21,7 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
             end
         else    # inquotes
             if c == quotes
-                if quotes != escape || length(matchall(quotes, field[i:end])) == 1
+                if quotes != escape || length(find(c -> c == quotes, field[chr2ind(field,i):end])) == 1
                     inquotes = false
                     push!(toskip, i)
                 else
