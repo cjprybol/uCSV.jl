@@ -23,15 +23,16 @@ end
 function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmalformed::Bool)
     if skipmalformed
         warn("""
-             Parsed $observed fields on row $currentline. Expected $numcols. Skipping...
+             Parsed $observed fields on row $currentline. Expected $expected. Skipping...
              """)
     else
         error("""
-              Parsed $observed fields on row $currentline. Expected $numcols.
-              To fix, try:
+              Parsed $observed fields on row $currentline. Expected $expected.
+              Possible fixes may include:
                 1. including $currentline in the `skiprows` argument
                 2. setting `skipmalformed=true`
-                3. If this line is a comment, set the `comment` argument
+                3. if this line is a comment, set the `comment` argument
+                4. fixing the malformed line in the source or file
               """)
     end
 end
