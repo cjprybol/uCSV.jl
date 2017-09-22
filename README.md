@@ -1,4 +1,4 @@
-# uCSV
+# uCSV.jl
 
 [![Build Status](https://travis-ci.org/cjprybol/uCSV.jl.svg?branch=master)](https://travis-ci.org/cjprybol/uCSV.jl)
 
