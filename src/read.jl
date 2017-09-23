@@ -9,7 +9,8 @@ function read(fullpath::Union{String,IO};
               types::Union{DataType,COLMAP{DataType},Vector{DataType}}=Dict{Int,DataType}(),
               isnullable::Union{Bool,COLMAP{Bool},Vector{Bool}}=Dict{Int,Bool}(),
               iscategorical::Union{Bool, COLMAP{Bool}, Vector{Bool}}=Dict{Int,Bool}(),
-              parsers::Union{Function, COLMAP{Function}, Vector{Function}}=Dict{Int,Function}(),
+              colparsers::Union{T, COLMAP{T}, Vector{T}} where T=Dict{Int,Function}(),
+              typeparsers::Dict{DataType, T} where T=Dict{DataType, Function}(),
               typedetectrows::Int=1,
               skipmalformed::Bool=false,
               trimwhitespace::Bool=false)
@@ -23,6 +24,7 @@ function read(fullpath::Union{String,IO};
         end
         data, colnames = parsesource(source, delim, quotes, escape, comment, encodings,
                                      header, skiprows, types, isnullable, iscategorical,
-                                     parsers, typedetectrows, skipmalformed, trimwhitespace)
+                                     colparsers, typeparsers, typedetectrows, skipmalformed,
+                                     trimwhitespace)
         return data, colnames
 end

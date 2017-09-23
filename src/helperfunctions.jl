@@ -1,11 +1,36 @@
 function getintdict(arg::Vector, numcols::Int, colnames::Vector{String})
-    @assert length(arg) == numcols
+    if length(arg) != numcols
+        throw(ArgumentError("""
+                            One of the following user-supplied arguments:
+                              1. types
+                              2. isnullable
+                              3. iscategorical
+                              4. colparsers
+                            was provided as a vector and the length of this vector ($(length(arg))) != the number of detected columns ($numcols).
+                            """))
+    end
     return Dict(i => arg[i] for i in 1:length(arg))
 end
 
 function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{String})
-    @assert !isempty(colnames)
-    return Dict(findfirst(colnames, k) => v for (k,v) in arg)
+    if isempty(colnames)
+        throw(ArgumentError("""
+                            One of the following user-supplied arguments:
+                              1. types
+                              2. isnullable
+                              3. iscategorical
+                              4. colparsers
+                            was provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.
+                            """))
+    end
+    if all(k -> in(k, colnames), keys(arg))
+        return Dict(findfirst(colnames, k) => v for (k,v) in arg)
+    else
+        k = findfirst(filter(k -> in(k, colnames), keys(arg)))
+        throw(ArgumentError("""
+                            user-provided column name $k does not match any parsed or user-provided column names.
+                            """))
+    end
 end
 
 function getintdict{T}(arg::Dict{Int, T}, numcols::Int, colnames::Vector{String})
@@ -16,24 +41,20 @@ function getintdict(arg, numcols::Int, colnames::Vector{String})
     return Dict(i => arg for i in 1:numcols)
 end
 
-function Base.parse(T::Type{String}, x)
-    string(x)
-end
-
 function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmalformed::Bool)
     if skipmalformed
         warn("""
              Parsed $observed fields on row $currentline. Expected $expected. Skipping...
              """)
     else
-        error("""
-              Parsed $observed fields on row $currentline. Expected $expected.
-              Possible fixes may include:
-                1. including $currentline in the `skiprows` argument
-                2. setting `skipmalformed=true`
-                3. if this line is a comment, set the `comment` argument
-                4. fixing the malformed line in the source or file
-              """)
+        throw(ErrorException("""
+                         Parsed $observed fields on row $currentline. Expected $expected.
+                         Possible fixes may include:
+                           1. including $currentline in the `skiprows` argument
+                           2. setting `skipmalformed=true`
+                           3. if this line is a comment, set the `comment` argument
+                           4. fixing the malformed line in the source or file
+                         """))
     end
 end
 

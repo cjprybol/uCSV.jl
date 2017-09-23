@@ -7,7 +7,7 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
         if escaped
             escaped = false
         elseif !inquotes
-            if trimwhitespace && ismatch(r"\s", c)
+            if trimwhitespace && ismatch(r"\s", string(c))
                 push!(toskip, i)
             elseif c == quotes
                 inquotes = true
@@ -46,7 +46,7 @@ function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
     toskip = Vector{Int}(0)
     for (i, c) in enumerate(field)
         if !inquotes
-            if trimwhitespace && ismatch(r"\s", c)
+            if trimwhitespace && ismatch(r"\s", string(c))
                 push!(toskip, i)
             elseif c == quotes
                 inquotes = true
@@ -78,7 +78,7 @@ function checkfield(field, quotes::Null, escape::Char, trimwhitespace::Bool)
         elseif c == escape
             escaped = true
             push!(toskip, i)
-        elseif trimwhitespace && ismatch(r"\s", c)
+        elseif trimwhitespace && ismatch(r"\s", string(c))
             push!(toskip, i)
         else
             continue
@@ -94,7 +94,7 @@ function checkfield(field, quotes::Null, escape::Null, trimwhitespace::Bool)
     toskip = Vector{Int}(0)
     if trimwhitespace
         for (i, c) in enumerate(field)
-            if ismatch(r"\s", c)
+            if ismatch(r"\s", string(c))
                 push!(toskip, i)
             else
                continue

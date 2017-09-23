@@ -4,9 +4,9 @@ function getfields(fields, delim, quotes, escape, trimwhitespace)
         inquotes, escaped, toskip, quoted = checkfield(field, quotes, escape, trimwhitespace)
         if inquotes || escaped
             if fi < length(fields)
-                fields[fi] *= delim * fields[fi+1]
+                fields[fi] = string(fields[fi], delim, fields[fi+1])
                 deleteat!(fields, fi+1)
-                getfields(fields, delim, quotes, escape, trimwhitespace)
+                return getfields(fields, delim, quotes, escape, trimwhitespace)
             else
                 return fields, isquoted, true
             end

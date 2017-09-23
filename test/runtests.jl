@@ -1,4 +1,4 @@
-using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test
+using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls
 
 s =
 """
@@ -125,446 +125,467 @@ data, header = uCSV.read(IOBuffer(s), quotes='"', escape='"')
 @test header == Vector{String}()
 
 
-# HERE
 s =
 """
 1997,Ford,E350,"Super, luxurious truck"
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["\"Super"],
+                  [" luxurious truck\""]]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super, luxurious truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,"Super,, luxurious truck"
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super,, luxurious truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,"Super,,, luxurious truck"
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super,,, luxurious truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,Super\\, luxurious truck
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), escape='\\')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super, luxurious truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,Super\\,\\, luxurious truck
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), escape='\\')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super,, luxurious truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,Super\\,\\,\\, luxurious truck
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), escape='\\')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super,,, luxurious truck"]]
+@test header == Vector{String}()
 
 
 s = "1997,Ford,E350,\"Super, \"\"luxurious\"\" truck\""
-CSV.parserow(IOBuffer(s), ',', '"', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"', escape='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super, \"luxurious\" truck"]]
+@test header == Vector{String}()
 
 s =
 """
-1997,Ford,E350,"Super, \"luxurious\" truck"
+1997,Ford,E350,"Super, \\\"luxurious\\\" truck"
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"', escape='\\')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super, \"luxurious\" truck"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,Super "luxurious" truck
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super \"luxurious\" truck"]]
+@test header == Vector{String}()
 
 s =
 """
 19,97;Ford;E350;Super "luxurious" truck
 """
-CSV.parserow(IOBuffer(s), ';', '\\', ('"', '"'), ',', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), delim=';', colparsers=Dict(1 => x -> parse(Float64, replace(x, ',', '.'))))
+@test data == Any[[19.97],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super \"luxurious\" truck"]]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s),
+                         delim=';',
+                         types=Dict(1 => Float64),
+                         typeparsers=Dict(Float64 => x -> parse(Float64, replace(x, ',', '.'))))
+@test data == Any[[19.97],
+                  ["Ford"],
+                  ["E350"],
+                  ["Super \"luxurious\" truck"]]
+@test header == Vector{String}()
+
 
 s = "1997,Ford,E350,\"Go get one now\nthey are going fast\""
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Go get one now\nthey are going fast"]]
+@test header == Vector{String}()
 
 s = "1997,Ford,E350,\"Go get one now\n\nthey are going fast\""
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Go get one now\n\nthey are going fast"]]
+@test header == Vector{String}()
 
 s =
 """
 1997,Ford,E350,"Go get one now\\nthey are going fast"
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["Go get one now\\nthey are going fast"]]
+@test header == Vector{String}()
 
 s =
 """
 1997, Ford, E350
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  [" Ford"],
+                  [" E350"]]
+@test header == Vector{String}()
 
-s =
-"""
-1997, Ford, E350
-"""
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), trimwhitespace=true)
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"]]
+@test header == Vector{String}()
 
 s =
 """
 1997, "Ford" ,E350
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  [" \"Ford\" "],
+                  ["E350"]]
+@test header ==  Vector{String}()
 
-s =
-"""
-1997, "Ford" ,E350
-"""
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), trimwhitespace=true)
+@test data == Any[[1997],
+                  ["\"Ford\""],
+                  ["E350"]]
+@test header ==  Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  [" Ford "],
+                  ["E350"]]
+@test header ==  Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"', trimwhitespace=true)
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"]]
+@test header ==  Vector{String}()
+
 
 s =
 """
 1997,Ford,E350," Super luxurious truck "
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', false, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  ["\" Super luxurious truck \""]]
+@test header ==  Vector{String}()
 
-s =
-"""
-1997,Ford,E350," Super luxurious truck "
-"""
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s), quotes='"')
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  [" Super luxurious truck "]]
+@test header ==  Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), quotes='"', trimwhitespace=true)
+@test data == Any[[1997],
+                  ["Ford"],
+                  ["E350"],
+                  [" Super luxurious truck "]]
+@test header ==  Vector{String}()
 
 s =
 """
 Los Angeles,34°03′N,118°15′W
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["Los Angeles"],
+                  ["34°03′N"],
+                  ["118°15′W"]]
+@test header == Vector{String}()
 
 s =
 """
 New York City,40°42′46″N,74°00′21″W
 """
-CSV.parserow(IOBuffer(s), ',', '\\', ('"', '"'), '.', true, Dict{Int, Function}())
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["New York City"],
+                  ["40°42′46″N"],
+                  ["74°00′21″W"]]
+@test header == Vector{String}()
 
 s =
 """
 Paris,48°51′24″N,2°21′03″E
 """
+data, header = uCSV.read(IOBuffer(s))
+@test data == Any[["Paris"],
+                  ["48°51′24″N"],
+                  ["2°21′03″E"]]
+@test header == Vector{String}()
 
-# @testset "Char parsing"
-# end
-#
-# @testset "String Parsing"
-# end
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["1997", "Ford", "E350", "Go get one now\nthey are going fast"]
-#
-#
-# # is parsed incorrectly when string literal starts on next line
-# @test parsefields(IOBuffer()) ==
-#     ["1997", "Ford", "E350", "Go get one now\nthey are going fast"]
-#
-# @test parsefields(IOBuffer("")) ==
-#     ["1997", "Ford", "E350", "Go get one now\n\nthey are going fast"]
-#
-# @test parsefields(IOBuffer("")) ==
-#     ["1997", "Ford", "E350", "Go get one now\\nthey are going fast"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["1997", " Ford", " E350"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """), trimwhitespace = true) == ["1997", "Ford", "E350"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """), trimwhitespace = true) == ["1997", "Ford", "E350"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["1997", "Ford", "E350", " Super luxurious truck "]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """), trimwhitespace = true) == ["1997", "Ford", "E350", " Super luxurious truck "]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["Los Angeles", "34°03′N", "118°15′W"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["New York City", "40°42′46″N", "74°00′21″W"]
-#
-# @test parsefields(IOBuffer("""
-#
-#                            """)) == ["Paris", "48°51′24″N", "2°21′03″E"]
-#
-# @testset "detecttypes"
-# end
-#
-# @testset "detecttypes"
-# end
-#
-# @testset "parsefields"
-# end
-#
-# @testset "RawField equality"
-# end
-#
-# @tesetset "match improperly split quotes"
-# end
-#
-# @testset "imperialize euro-style decimals"
-# end
-#
-# @testset "parsestrings"
-# end
-#
-# @testset "read delimited files"
-# end
-#
-# @testset "quoted delimiters"
-# end
-#
-# @testset "quoted newlines"
-# end
-#
-# @testset "dates"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "times"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "datetimes"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "read urls"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/385
-# end
-#
-# @testset "read files with missing data"
-# end
-#
-# @testset "read files with quotes escaping quotes"
-# end
-#
-# @testset "read euro style decimals"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/291
-#     # https://github.com/JuliaData/CSV.jl/issues/83
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/402
-# end
-#
-# @testset "read scientific notation numbers"
-# end
-#
-# @testset "different beginning and ending quotes"
-#     # https://github.com/JuliaData/CSV.jl/issues/60
-#     x = """
-#         {reddish}, {red, ish}
-#         {darkish}, {dark, ish}
-#         {greenish}, {green, ish}
-#         {greyish}, {grey, ish}
-#         """
-# end
-#
-# @testset "skip whitespace"
-# end
-#
-# @testset "skip whitespace"
-# end
-#
-# @testset "nullstrings"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/304
-#     x = """
-#         1,hey,1
-#         2,you,2
-#         3,,3
-#         4,"",4
-#         5,NULL,5
-#         """
-# end
-#
-# @testset "skip malformed"
-#     # https://github.com/JuliaData/CSV.jl/issues/76
-# end
-#
-# @testset "skip comments at start of file"
-# end
-#
-# @testset "headerless files"
-# end
-#
-# @testset "header not on first line"
-# end
-#
-# @testset "gap between header and data"
-# end
-#
-# @testset "null inference"
-# end
-#
-# @testset "categorical arrays"
-# end
-#
-# @testset "gzipped files"
-#     # https://github.com/JuliaData/CSV.jl/issues/46
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "header shorter than columns"
-#     # https://github.com/JuliaData/CSV.jl/issues/54
-#     x = """
-#         A;B;C
-#         1,1,10
-#         2,0,16
-#         """
-# end
-#
-# @testset "truncated final line"
-#     # https://github.com/JuliaData/CSV.jl/issues/54
-#     x = """
-#         A,B,C
-#         1,1,10
-#         6,1
-#         """
-# end
-#
-# @testset "write with no quotemarks"
-#     # https://discourse.julialang.org/t/writing-dataframe-with-no-quotemarks/4599
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/1080
-# end
-#
-# @testset "mmap and writeables"
-#     # https://github.com/JuliaData/CSV.jl/issues/66
-# end
-#
-# @testset "allow string delimiters"
-#     # https://github.com/JuliaData/CSV.jl/issues/71
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "allow regex delimiters"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "boolean strings"
-#     # https://github.com/JuliaData/CSV.jl/issues/79
-# end
-#
-# @testset "countlines"
-#     # needed for efficient skiprows
-# end
-#
-# @testset "skiprows"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-#     # where 1 refers to first row after header
-#     # end refers to last line in dataset
-#     # need to be able to efficiently slice ranges in data
-#     # skip beginning
-#     # skip end
-#     # skip middle
-#     # skip beginning & end
-#     # skip beginning & middle & end
-# end
-#
-# @testset "transforms"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-#     # refer to columns by #
-#     # refer to columns by Symbol
-#     # refer to columns by String
-# end
-#
-# @testset "specify column types"
-# end
-#
-# @testset "tricky escapes"
-#     # https://github.com/JuliaStats/DataFrames.jl/issues/292
-# end
-#
-# @testset "handle trailing whitespace"
-#     # https://github.com/JuliaData/CSV.jl/issues/84
-#     # use transforms
-#     # use trimwhitespace
-# end
-#
-# @testset "quote-escaped quotes"
-#     # https://github.com/JuliaData/CSV.jl/issues/86
-# end
-#
-# @testset "coltype promotions"
-#     # https://github.com/JuliaData/CSV.jl/issues/88
-# end
-#
-# @testset "skip commented lines"
-#     # I want this functionality to read VCFs
-# end
-#
-#
-#
-# # @test joinquotes(["a", "b", "c", "d", "e"], [false, false, true, false, true], ',') ==
-# #     ["a", "b", "c,d,e"]
-# #
-# # @test imperialize("string,string") == "string,string"
-# # @test imperialize("123,123") == "123.123"
-# # @test imperialize("123,") == "123."
-# # @test imperialize(",123") == ".123"
-# # @test imperialize("string, string") == "string, string"
-# # @test imperialize("123, 123") == "123, 123"
-# # @test imperialize("123 ,") == "123 ,"
-# # @test imperialize(", 123") == ", 123"
-#
-#
-#
-#
-#
-#
-# parsefields(IOBuffer("""
-#                      Los Angeles,34°03′N,118°15′W
-#                      New York City,40°42′46″N,74°00′21″W
-#                      Paris,48°51′24″N,2°21′03″E
-#                      """))
-#
-# parsefields(IOBuffer("""
-#                      Year,Make,Model
-#                      1997,Ford,E350
-#                      2000,Mercury,Cougar
-#                      """))
-#
-# b = IOBuffer("Year,Make,Model,Description,Price\n1997,Ford,E350,\"ac, abs, moon\",3000.00\n1999,Chevy,\"Venture \"\"Extended Edition\"\"\",\"\",4900.00\n1999,Chevy,\"Venture \"\"Extended Edition, Very Large\"\"\",,5000.00\n1996,Jeep,Grand Cherokee,\"MUST SELL!\nair, moon roof, loaded\",4799.00\n")
-#
-# parsefields(b, escapechar = '"')
-#
-# parsefields(IOBuffer("""
-#                      Year,Make,Model,Length
-#                      1997,Ford,E350,2.34
-#                      2000,Mercury,Cougar,2.38
-#                      """))
-#
-# parsefields(IOBuffer("""
-#                      Year;Make;Model;Length
-#                      1997;Ford;E350;2,34
-#                      2000;Mercury;Cougar;2,38
-#                      """), euro = true)
-#
-# parsefields(IOBuffer("""
-#                      I,am,a,csv
-#                      file,with,two,rows
-#                      """))
-#
-# parsefields(IOBuffer("""
-#                      I\tam\ta\ttsv
-#                      file\twith\ttwo\trows
-#                      """))
+s =
+"""
+x≤y≤z
+"""
+data, header = uCSV.read(IOBuffer(s), delim='≤')
+@test data == Any[["x"],
+                  ["y"],
+                  ["z"]]
+@test header == Vector{String}()
 
+s =
+"""
+x≤≥y≤≥z
+"""
+data, header = uCSV.read(IOBuffer(s), delim="≤≥")
+@test data == Any[["x"],
+                  ["y"],
+                  ["z"]]
+@test header == Vector{String}()
+
+s =
+"""
+2013-01-01T00:00:00
+"""
+data, header = uCSV.read(IOBuffer(s), types=DateTime)
+@test data == Any[[DateTime("2013-01-01T00:00:00")]]
+@test header == Vector{String}()
+
+s =
+"""
+2013-01-01
+"""
+data, header = uCSV.read(IOBuffer(s), types=Date)
+@test data == Any[[Date("2013-01-01")]]
+@test header == Vector{String}()
+
+
+encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null)
+s =
+"""
+1,hey,1
+2,you,2
+3,,3
+4,"",4
+5,NULL,5
+6,NA,6
+"""
+data, header = uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3)
+@test data == Any[[1, 2, 3, 4, 5, 6],
+                  ["hey", "you", null, null, null, null],
+                  [1, 2, 3, 4, 5, 6]]
+@test header == Vector{String}()
+
+uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true)
+@test data == Any[[1, 2, 3, 4, 5, 6],
+                  ["hey", "you", null, null, null, null],
+                  [1, 2, 3, 4, 5, 6]]
+@test header == Vector{String}()
+
+uCSV.read(IOBuffer(s), encodings=encodings, isnullable=Dict(2 => true))
+@test data == Any[[1, 2, 3, 4, 5, 6],
+                  ["hey", "you", null, null, null, null],
+                  [1, 2, 3, 4, 5, 6]]
+@test header == Vector{String}()
+
+uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true, false])
+@test data == Any[[1, 2, 3, 4, 5, 6],
+                  ["hey", "you", null, null, null, null],
+                  [1, 2, 3, 4, 5, 6]]
+@test header == Vector{String}()
+
+@test_throws ArgumentError uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true])
+
+html = "https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv"
+data, header = uCSV.read(HTTP.body(HTTP.get(html)), quotes='"', header=1)
+@test data == Any[["Food and Tobacco", "Household Operation", "Medical and Health", "Personal Care", "Private Education"],
+                  [22.2, 10.5, 3.53, 1.04, 0.341],
+                  [44.5, 15.5, 5.76, 1.98, 0.974],
+                  [59.6, 29.0, 9.71, 2.45, 1.8],
+                  [73.2, 36.5, 14.0, 3.4, 2.6],
+                  [86.8, 46.2, 21.1, 5.4, 3.64]]
+@test header == String["", "1940", "1945", "1950", "1955", "1960"]
+
+s =
+"""
+# i am a comment
+data
+"""
+data, header = uCSV.read(IOBuffer(s), comment='#')
+@test data == Any[["data"]]
+@test header == Vector{String}()
+
+s =
+"""
+# i am a comment
+I'm the header
+"""
+data, header = uCSV.read(IOBuffer(s), header=2)
+@test data == Any[]
+@test header == ["I'm the header"]
+
+data, header = uCSV.read(IOBuffer(s), comment='#', header=1)
+@test data == Any[]
+@test header == ["I'm the header"]
+
+s =
+"""
+# i am a comment
+I'm the header
+skipped data
+included data
+"""
+data, header = uCSV.read(IOBuffer(s), comment='#', header=1, skiprows=1:1)
+@test data == Any[["included data"]]
+@test header == ["I'm the header"]
+
+s =
+"""
+# i am a comment
+I'm the header
+skipped data
+included data
+"""
+data, header = uCSV.read(IOBuffer(s), skiprows=1:3)
+@test data == Any[["included data"]]
+@test header == Vector{String}()
+
+s =
+"""
+a,b,c
+a,b,c
+a,b,c
+a,b,c
+"""
+data, header = uCSV.read(IOBuffer(s), iscategorical=true)
+@test data == Any[CategoricalVector(["a", "a", "a", "a"]),
+                  CategoricalVector(["b", "b", "b", "b"]),
+                  CategoricalVector(["c", "c", "c", "c"])]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), iscategorical=[true, true, true])
+@test data == Any[CategoricalVector(["a", "a", "a", "a"]),
+                  CategoricalVector(["b", "b", "b", "b"]),
+                  CategoricalVector(["c", "c", "c", "c"])]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), iscategorical=Dict(1 => true, 2 => true, 3 => true))
+@test data == Any[CategoricalVector(["a", "a", "a", "a"]),
+                  CategoricalVector(["b", "b", "b", "b"]),
+                  CategoricalVector(["c", "c", "c", "c"])]
+@test header == Vector{String}()
+
+data, header = uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a" => true, "b" => true, "c" => true))
+@test data == Any[CategoricalVector(["a", "a", "a"]),
+                  CategoricalVector(["b", "b", "b"]),
+                  CategoricalVector(["c", "c", "c"])]
+@test header == ["a", "b", "c"]
+
+s =
+"""
+A;B;C
+1,1,10
+2,0,16
+"""
+e = @test_throws ErrorException uCSV.read(IOBuffer(s))
+@test e.value.msg == "Parsed 3 fields on row 2. Expected 1.\nPossible fixes may include:\n  1. including 2 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. fixing the malformed line in the source or file\n"
+
+e = @test_throws ErrorException uCSV.read(IOBuffer(s), header = 1)
+@test e.value.msg == "parsed header String[\"A;B;C\"] has 1 columns, but 3 were detected the in dataset.\n"
+
+s =
+"""
+A,B,C
+1,1,10
+6,1
+"""
+e = @test_throws ErrorException uCSV.read(IOBuffer(s))
+@test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. fixing the malformed line in the source or file\n"
+
+s =
+"""
+true
+"""
+data, header = uCSV.read(IOBuffer(s), types=Bool)
+@test data == Any[[true]]
+@test header == Vector{String}()
+
+# TODO make this @__FILE__
 files = joinpath(Pkg.dir("uCSV"), "test", "data")
+df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.gz"))), header=1)...)
+@test head(df, 1) == DataFrame(Id = 1,
+                               SepalLengthCm = 5.1,
+                               SepalWidthCm = 3.5,
+                               PetalLengthCm = 1.4,
+                               PetalWidthCm = 0.2,
+                               Species = "Iris-setosa")
 
+
+# write data
+# write header
+# write header and data
+# write nothing
+# write header and data with quotes
+
+# test on local files
+
+#test on RDatasets files
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/loomis.csv.gz #NA's with bools
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/titanic.csv.gz #categorical int
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/Clothing.csv.gz # quoted headers
@@ -627,9 +648,12 @@ https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/randu.cs
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/PD.csv.gz # so ugly
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/lukas.csv.gz # MF sex recoding
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/mao.csv.gz # Int and Int/Int
+https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/economics.csv.gz # more dates
+https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/presidential.csv.gz # more dates
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/plyr/baseball.csv.gz # lots of NAs
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/ca2006.csv.gz # true false encodings
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/presidentialElections.csv.gz # different true false
+https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/UKHouseOfCommons.csv.gz
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Reise.csv.gz # make headers and first column the same
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Schmid.csv.gz # another freqtable
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Thurstone.csv.gz # another freqtable with recodings
@@ -645,20 +669,4 @@ https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Bundesliga.cs
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Employment.csv.gz # employment length
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/PreSex.csv.gz # lots of encodings
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/RepVict.csv.gz # FreqTable
-https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/economics.csv.gz # more dates
-https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/presidential.csv.gz # more dates
-https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/UKHouseOfCommons.csv.gz
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Lifeboats.csv.gz # dates
-https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/SexualFun.csv.gz
-
-CSV.read(GzipDecompressionStream(HTTP.body(HTTP.get(html))))
-
-for line in eachline((IOBuffer(Requests.read(get(html)))))
-    println(line)
-end
-
-# using CSV, Base.Test, BenchmarkTools
-
-
-
-using CSV
