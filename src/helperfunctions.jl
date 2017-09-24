@@ -41,7 +41,7 @@ function getintdict(arg, numcols::Int, colnames::Vector{String})
     return Dict(i => arg for i in 1:numcols)
 end
 
-function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmalformed::Bool)
+function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmalformed::Bool, line)
     if skipmalformed
         warn("""
              Parsed $observed fields on row $currentline. Expected $expected. Skipping...
@@ -49,27 +49,31 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
     else
         throw(ErrorException("""
                          Parsed $observed fields on row $currentline. Expected $expected.
+                         line:
+                         $line
                          Possible fixes may include:
                            1. including $currentline in the `skiprows` argument
                            2. setting `skipmalformed=true`
                            3. if this line is a comment, set the `comment` argument
-                           4. fixing the malformed line in the source or file
+                           4. if fields are quoted, setting the `quotes` argument
+                           5. if special characters are escaped, setting the `escape` argument
+                           6. fixing the malformed line in the source or file before invoking `uCSV.read`
                          """))
     end
 end
 
-function _readline(source::IO, comment::Null)
-    line = readline(source)
-    while isempty(line) && !eof(source)
-        line = readline(source)
+function _readline(splitsource::Vector{T}, comment::Null) where T
+    line = shift!(splitsource)
+    while isempty(line) && !isempty(splitsource)
+        line = shift!(splitsource)
     end
     return line
 end
 
-function _readline(source::IO, comment)
-    line = readline(source)
-    while startswith(line, comment) || isempty(line) && !eof(source)
-        line = readline(source)
+function _readline(splitsource::Vector{T}, comment) where T
+    line = shift!(splitsource)
+    while (startswith(line, comment) || isempty(line)) && !isempty(splitsource)
+        line = shift!(splitsource)
     end
     return line
 end

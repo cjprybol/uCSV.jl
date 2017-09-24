@@ -11,14 +11,14 @@ function write(fullpath::String;
             @assert length(header) == length(data)
         end
     end
-    f = open(fullpath)
+    f = open(fullpath, "w")
     if !isnull(header)
         if !isnull(quotes)
             for i in eachindex(header)
                 header[i] = string(quotes, header[i], quotes)
             end
         end
-        write(f, join(header, delim))
+        Base.write(f, join(header, delim) * "\n")
     end
     if !isnull(data)
         numcols = length(data)
@@ -30,7 +30,8 @@ function write(fullpath::String;
                     rowvalues[i] = string(quotes, rowvalues[i], quotes)
                 end
             end
-            write(f, join(rowvalues, delim))
+            Base.write(f, join(rowvalues, delim) * "\n")
         end
     end
+    close(f)
 end

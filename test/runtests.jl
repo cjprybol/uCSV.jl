@@ -1,4 +1,8 @@
-using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls
+using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls, StringEncodings
+
+# TODO make this @__FILE__
+files = joinpath(Pkg.dir("uCSV"), "test", "data")
+GDS = GzipDecompressionStream
 
 s =
 """
@@ -566,8 +570,6 @@ data, header = uCSV.read(IOBuffer(s), types=Bool)
 @test data == Any[[true]]
 @test header == Vector{String}()
 
-# TODO make this @__FILE__
-files = joinpath(Pkg.dir("uCSV"), "test", "data")
 df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.gz"))), header=1)...)
 @test head(df, 1) == DataFrame(Id = 1,
                                SepalLengthCm = 5.1,
@@ -577,13 +579,275 @@ df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.
                                Species = "Iris-setosa")
 
 
-# write data
-# write header
-# write header and data
-# write nothing
-# write header and data with quotes
+if Sys.WORD_SIZE == 64
+    outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt")
+    uCSV.write(outpath, header = string.(names(df)), data = df.columns)
+    @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
+
+    uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"')
+    @test hash(read(open(outpath), String)) == 0x01eced86ce7925c3
+
+    uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"', delim="≤≥")
+    @test hash(read(open(outpath), String)) == 0x2cd049ba9cf45178
+
+    uCSV.write(outpath, header = string.(names(df)))
+    @test hash(read(open(outpath), String)) == 0x28eea4238d3c772f
+
+    uCSV.write(outpath, data = df.columns)
+    @test hash(read(open(outpath), String)) == 0x92a0c4b8ee59a667
+
+    e = @test_throws ArgumentError uCSV.write(outpath)
+    @test e.value.msg == "no header or data provided"
+
+    e = @test_throws AssertionError uCSV.write(outpath, header = string.(names(df))[1:2], data = df.columns)
+    @test e.value.msg == "length(header) == length(data)"
+
+    rm(outpath)
+end
 
 # test on local files
+
+f = joinpath(files, "2010_BSA_Carrier_PUF.csv.gz")
+e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
+@test e.value.msg == "Error parsing field \"A0425\" in row 2, column 4.\nUnable to parse field \"A0425\" as type Int64\nPossible fixes include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2)...)
+@test names(df) == [:BENE_SEX_IDENT_CD, :BENE_AGE_CAT_CD, :CAR_LINE_ICD9_DGNS_CD, :CAR_LINE_HCPCS_CD, :CAR_LINE_BETOS_CD, :CAR_LINE_SRVC_CNT, :CAR_LINE_PRVDR_TYPE_CD, :CAR_LINE_CMS_TYPE_SRVC_CD, :CAR_LINE_PLACE_OF_SRVC_CD, :CAR_HCPS_PMT_AMT, :CAR_LINE_CNT]
+@test size(df) == (2801660, 11)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Int, Int, String, String, String, Int, Int, String, Int, Int, Int]]
+
+f = joinpath(files, "AIRSIGMET.csv.gz")
+e = @test_throws ErrorException DataFrame(uCSV.read(GDS(open(f)))...)
+@test e.value.msg == "Parsed 12 fields on row 6. Expected 1.\nPossible fixes may include:\n  1. including 6 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. fixing the malformed line in the source or file\n"
+data, header = uCSV.read(GDS(open(f)), skipmalformed=true, header=1)
+@test data == Any[["No warnings", "285 ms", "data source=airsigmets", "1 results"]]
+@test header == ["No errors"]
+df = DataFrame(uCSV.read(GDS(open(f)), header=6)...)
+@test names(df) == [:raw_text, :valid_time_from, :valid_time_to, Symbol("lon:lat points"), :min_ft_msl, :max_ft_msl, :movement_dir_degrees, :movement_speed_kt, :hazard, :severity, :airsigmet_type, Symbol("")]
+@test size(df) == (1, 12)
+@test typeof.(df.columns) ==  [Vector{T} for T in
+                               [String, String, String, String, Int64, Int64, String, String, String, String, String, String]]
+
+f = joinpath(files, "Ex3_human_rat_cirrhosis_signature_for_NTP.txt.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t')...)
+@test names(df) == [Symbol("Human.Symbol"), :DESCRIPTION, :cirrhosis1_normal2, Symbol("tstat.high.in.cirrhosis")]
+@test size(df) == (1246, 4)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [String, String, Int, Float64]]
+
+f = joinpath(files, "Ex4_multi_tissues_signature_for_NTP.txt.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t')...)
+@test names(df) == [:NAME, :DESCRIPTION, :Br1_Pr2_Lu3_Co4]
+@test size(df) == (1603, 3)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [String, String, Int]]
+
+# microsoft line endings
+f = joinpath(files, "FL_insurance_sample.csv.gz")
+e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
+@test e.value.msg == "Error parsing field \"1322376.3\" in row 2, column 4.\nUnable to parse field \"1322376.3\" as type Int64\nPossible fixes include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n"
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2439)...)
+@test names(df) == [:policyID, :statecode, :county, :eq_site_limit, :hu_site_limit, :fl_site_limit, :fr_site_limit, :tiv_2011, :tiv_2012, :eq_site_deductible, :hu_site_deductible, :fl_site_deductible, :fr_site_deductible, :point_latitude, :point_longitude, :line, :construction, :point_granularity]
+@test size(df) == (36634, 18)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Int64, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Int64, Float64, Float64, String, String, Int64]]
+
+f = joinpath(files, "Fielding.csv.gz")
+e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
+@test e.value.msg == "Error parsing field \"\" in row 3460, column 11.\nUnable to parse field \"\" as type Int64\nPossible fixes include:\n  1. set `typedetectrows` to a value >= 3460\n  2. manually specify the element-type of column 11 via the `types` argument\n  3. manually specify a parser for column 11 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
+
+e = @test_throws ArgumentError uCSV.read(GDS(open(f)), header=1, isnullable=Dict(11 => true))
+@test e.value.msg == "Nullable columns have been requested but the user has not specified any strings to interpret as null values via the `encodings` argument.\n"
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, types=Dict(8 => Int, 9 => Int, 14 => Int, 15 => Int, 16 => Int, 17 => Int, 18 => Int), encodings=Dict{String, Any}("" => null), isnullable=Dict(10 => true, 11 => true, 12 => true, 13 => true))...)
+@test names(df) == [:playerID, :yearID, :stint, :teamID, :lgID, :POS, :G, :GS, :InnOuts, :PO, :A, :E, :DP, :PB, :WP, :SB, :CS, :ZR]
+@test size(df) == (167938, 18)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [String, Int64, Int64, String, String, String, Int64, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}]
+
+f = joinpath(files, "Gaz_zcta_national.txt.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t', trimwhitespace=true)...)
+@test names(df) == [:GEOID, :POP10, :HU10, :ALAND, :AWATER, :ALAND_SQMI, :AWATER_SQMI, :INTPTLAT, :INTPTLONG]
+@test size(df) == (33120, 9)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Int64, Int64, Int64, Int64, Int64, Float64, Float64, Float64, Float64]
+
+f = joinpath(files, "Homo_sapiens.GRCh38.90.chr.gtf.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', comment="#!", types=Dict(1 => String))[1])
+@test names(df) == [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9]
+@test size(df) == (2612129, 9)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [String, String, String, Int64, Int64, String, String, String, String]]
+
+f = joinpath(files, "Homo_sapiens.GRCh38.90.gff3.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', comment='#', types=Dict(1 => Symbol))[1])
+@test names(df) == [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9]
+@test size(df) == (2636880, 9)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Symbol, String, String, Int64, Int64, String, String, String, String]]
+
+f = joinpath(files, "Homo_sapiens_clinically_associated.vcf.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', comment="##", types=Dict(1 => Symbol), header=1)...)
+@test names(df) == [Symbol("#CHROM"), :POS, :ID, :REF, :ALT, :QUAL, :FILTER, :INFO]
+@test size(df) == (66600, 8)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Symbol, Int64, String, String, String, String, String, String]]
+
+f = joinpath(files, "METARs.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=6)...)
+@test names(df) == [:raw_text, :station_id, :observation_time, :latitude, :longitude, :temp_c, :dewpoint_c, :wind_dir_degrees, :wind_speed_kt, :wind_gust_kt, :visibility_statute_mi, :altim_in_hg, :sea_level_pressure_mb, :corrected, :auto, :auto_station, :maintenance_indicator_on, :no_signal, :lightning_sensor_off, :freezing_rain_sensor_off, :present_weather_sensor_off, :wx_string, :sky_cover, :cloud_base_ft_agl, :sky_cover_1, :cloud_base_ft_agl_1, :sky_cover_2, :cloud_base_ft_agl_2, :sky_cover_3, :cloud_base_ft_agl_3, :flight_category, :three_hr_pressure_tendency_mb, :maxT_c, :minT_c, :maxT24hr_c, :minT24hr_c, :precip_in, :pcp3hr_in, :pcp6hr_in, :pcp24hr_in, :snow_in, :vert_vis_ft, :metar_type, :elevation_m]
+@test size(df) == (2, 44)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [String, String, String, Float64, Float64, Float64, Float64, Int64, Int64, String, Float64, Float64, Float64, String, String, String, String, String, String, String, String, String, String, Int64, String, Int64, String, Int64, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, Float64]]
+
+f = joinpath(files, "Most-Recent-Cohorts-Scorecard-Elements.csv.gz")
+@test_warn "Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead." uCSV.read(GDS(open(f)), header=1, encodings=Dict{String, Any}("NULL" => null, "PrivacySuppressed" => null), typedetectrows=7283, quotes='"', skiprows=2:typemax(Int))
+df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict{String, Any}("NULL" => null, "PrivacySuppressed" => null), typedetectrows=200, quotes='"', isnullable=true)...)
+@test names(df) == [Symbol("\ufeffUNITID"), :OPEID, :OPEID6, :INSTNM, :CITY, :STABBR, :INSTURL, :NPCURL, :HCM2, :PREDDEG, :CONTROL, :LOCALE, :HBCU, :PBI, :ANNHI, :TRIBAL, :AANAPII, :HSI, :NANTI, :MENONLY, :WOMENONLY, :RELAFFIL, :SATVR25, :SATVR75, :SATMT25, :SATMT75, :SATWR25, :SATWR75, :SATVRMID, :SATMTMID, :SATWRMID, :ACTCM25, :ACTCM75, :ACTEN25, :ACTEN75, :ACTMT25, :ACTMT75, :ACTWR25, :ACTWR75, :ACTCMMID, :ACTENMID, :ACTMTMID, :ACTWRMID, :SAT_AVG, :SAT_AVG_ALL, :PCIP01, :PCIP03, :PCIP04, :PCIP05, :PCIP09, :PCIP10, :PCIP11, :PCIP12, :PCIP13, :PCIP14, :PCIP15, :PCIP16, :PCIP19, :PCIP22, :PCIP23, :PCIP24, :PCIP25, :PCIP26, :PCIP27, :PCIP29, :PCIP30, :PCIP31, :PCIP38, :PCIP39, :PCIP40, :PCIP41, :PCIP42, :PCIP43, :PCIP44, :PCIP45, :PCIP46, :PCIP47, :PCIP48, :PCIP49, :PCIP50, :PCIP51, :PCIP52, :PCIP54, :DISTANCEONLY, :UGDS, :UGDS_WHITE, :UGDS_BLACK, :UGDS_HISP, :UGDS_ASIAN, :UGDS_AIAN, :UGDS_NHPI, :UGDS_2MOR, :UGDS_NRA, :UGDS_UNKN, :PPTUG_EF, :CURROPER, :NPT4_PUB, :NPT4_PRIV, :NPT41_PUB, :NPT42_PUB, :NPT43_PUB, :NPT44_PUB, :NPT45_PUB, :NPT41_PRIV, :NPT42_PRIV, :NPT43_PRIV, :NPT44_PRIV, :NPT45_PRIV, :PCTPELL, :RET_FT4, :RET_FTL4, :RET_PT4, :RET_PTL4, :PCTFLOAN, :UG25ABV, :MD_EARN_WNE_P10, :GT_25K_P6, :GRAD_DEBT_MDN_SUPP, :GRAD_DEBT_MDN10YR_SUPP, :RPY_3YR_RT_SUPP, :C150_L4_POOLED_SUPP, :C150_4_POOLED_SUPP]
+@test size(df) == (7703, 122)
+@test typeof.(df.columns) == [Vector{T} for T in
+                              [Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Nulls.Null, String}, Union{Nulls.Null, String}, Union{Nulls.Null, String}, Union{Nulls.Null, String}, Union{Nulls.Null, String}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Int64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}, Union{Float64, Nulls.Null}]]
+
+f = joinpath(files, "OP_DTL_OWNRSHP_PGYR2016_P06302017.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "PIREPs.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "STATIONINFO.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "SacramentocrimeJanuary2006.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "Sacramentorealestatetransactions.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "SalesJan2009.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "TAFs.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "TechCrunchcontinentalUSA.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "WellIndex_20160811.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "baseball.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "battles.csv.gz")
+df = DataFrame(uCSV.read(GDS(open(f)), header=1)...)
+@test names(df) ==
+@test size(df) ==
+@test typeof.(df.columns) == [Vector{T} for T in
+                              []]
+
+f = joinpath(files, "character-deaths.csv.gz")
+f = joinpath(files, "character-predictions.csv.gz")
+f = joinpath(files, "comma_in_quotes.csv.gz")
+f = joinpath(files, "complications-and-deaths-hospital.csv.gz")
+f = joinpath(files, "diabetes.csv.gz")
+f = joinpath(files, "empty.csv.gz")
+f = joinpath(files, "empty_crlf.csv.gz")
+f = joinpath(files, "escaped_quotes.csv.gz")
+f = joinpath(files, "final-cjr-quality-pr.csv.gz")
+f = joinpath(files, "globalterrorismdb_0617dist.csv.gz")
+f = joinpath(files, "goa_human.gaf.gz")
+f = joinpath(files, "hospice-compare-casper-aspen-contacts.csv.gz")
+f = joinpath(files, "hospice-compare-general-info.csv.gz")
+f = joinpath(files, "hospice-compare-provider-data.csv.gz")
+f = joinpath(files, "indicators.csv.gz")
+f = joinpath(files, "iris.csv.gz")
+f = joinpath(files, "json.csv.gz")
+f = joinpath(files, "latest.csv.gz")
+f = joinpath(files, "movie_metadata.csv.gz")
+f = joinpath(files, "newlines.csv.gz")
+f = joinpath(files, "newlines_crlf.csv.gz")
+f = joinpath(files, "pandas_zeros.csv.gz")
+f = joinpath(files, "payment-year-2017.csv.gz")
+f = joinpath(files, "quotes_and_newlines.csv.gz")
+f = joinpath(files, "simple.csv.gz")
+f = joinpath(files, "simple_crlf.csv.gz")
+f = joinpath(files, "species.txt.gz")
+f = joinpath(files, "stocks.csv.gz")
+f = joinpath(files, "student-por.csv.gz")
+f = joinpath(files, "test_2_footer_rows.csv.gz")
+f = joinpath(files, "test_basic.csv.gz")
+f = joinpath(files, "test_basic_pipe.csv.gz")
+f = joinpath(files, "test_crlf_line_endings.csv.gz")
+f = joinpath(files, "test_dates.csv.gz")
+f = joinpath(files, "test_datetimes.csv.gz")
+f = joinpath(files, "test_empty_file.csv.gz")
+f = joinpath(files, "test_empty_file_newlines.csv.gz")
+f = joinpath(files, "test_excel_date_formats.csv.gz")
+f = joinpath(files, "test_float_in_int_column.csv.gz")
+f = joinpath(files, "test_floats.csv.gz")
+f = joinpath(files, "test_header_on_row_4.csv.gz")
+f = joinpath(files, "test_mac_line_endings.csv.gz")
+f = joinpath(files, "test_missing_value.csv.gz")
+f = joinpath(files, "test_missing_value_NULL.csv.gz")
+f = joinpath(files, "test_mixed_date_formats.csv.gz")
+f = joinpath(files, "test_newline_line_endings.csv.gz")
+f = joinpath(files, "test_no_header.csv.gz")
+f = joinpath(files, "test_one_row_of_data.cscv")
+f = joinpath(files, "test_one_row_of_data.csv.gz")
+f = joinpath(files, "test_quoted_delim_and_newline.csv.gz")
+f = joinpath(files, "test_quoted_numbers.csv.gz")
+f = joinpath(files, "test_simple_quoted.csv.gz")
+f = joinpath(files, "test_single_column.csv.gz")
+f = joinpath(files, "test_tab_null_empty.txt.gz")
+f = joinpath(files, "test_tab_null_string.txt.gz")
+f = joinpath(files, "test_utf16.csv.gz")
+f = joinpath(files, "test_utf16_be.csv.gz")
+f = joinpath(files, "test_utf16_le.csv.gz")
+f = joinpath(files, "test_utf8.csv.gz")
+f = joinpath(files, "test_utf8_with_BOM.csv.gz")
+f = joinpath(files, "test_windows.csv.gz")
+f = joinpath(files, "utf8.csv.gz")
+f = joinpath(files, "zika.csv.gz")
+
 
 #test on RDatasets files
 https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/loomis.csv.gz #NA's with bools

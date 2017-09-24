@@ -1,7 +1,7 @@
 __precompile__(true)
 module uCSV
 
-using DataFrames, Nulls, CategoricalArrays
+using DataFrames, Nulls, CategoricalArrays, StringEncodings
 
 COLMAP{T} = Union{Dict{String, T}, Dict{Int, T}}
 

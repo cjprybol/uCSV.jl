@@ -4,22 +4,23 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     currentline = 0
     colnames = Vector{String}()
+    splitsource = split(rstrip(Base.read(source, String)), r"\r\n?|\n")
     if isa(header, Vector{String})
         colnames = header
     elseif header > 0
-        line = _readline(source, comment)
+        line = _readline(splitsource, comment)
         currentline += 1
         while currentline < header
-            line = _readline(source, comment)
+            line = _readline(splitsource, comment)
             currentline += 1
         end
         if currentline == header
             fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             while e
-                if eof(source)
+                if eof(splitsource)
                     throw(ErrorException("unexpected EOF"))
                 else
-                    line *= "\n" * readline(source)
+                    line *= "\n" * shift!(splitsource)
                     fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
                 end
             end
@@ -32,18 +33,18 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     isquoted = Vector{Bool}(numcols)
     currentline = 0
     linesparsedfortypedetection = 0
-    while !eof(source) && linesparsedfortypedetection < typedetectrows
-        line = _readline(source, comment)
+    while !isempty(splitsource) && linesparsedfortypedetection < typedetectrows
+        line = _readline(splitsource, comment)
         currentline += 1
         if in(currentline, skiprows)
             continue
         end
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
         while e
-            if eof(source)
+            if isempty(splitsource)
                 throw(ErrorException("unexpected EOF"))
             else
-                line *= "\n" * readline(source)
+                line *= "\n" *  shift!(splitsource)
                 fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             end
         end
@@ -53,7 +54,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             rawstrings = Array{String, 2}(typedetectrows, numcols)
             isquoted = falses(numcols)
         elseif length(fields) != numcols
-            handlemalformed(numcols, length(fields), currentline, skipmalformed)
+            handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
         end
         rawstrings[linesparsedfortypedetection, :] .= fields
         isquoted .|= quoted
@@ -88,15 +89,14 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     index2parser::Dict{Int, Function} = getintdict(colparsers, numcols, colnames)
     type2parser::Dict{DataType, Function} = Dict(Int => x -> parse(Int, x),
                                                  Float64 => x -> parse(Float64, x),
-                                                 String => x -> string(x))
+                                                 String => x -> string(x),
+                                                 Date => x -> parse(Date, x),
+                                                 DateTime => x -> parse(Datetime, x),
+                                                 Symbol => x -> Symbol(string(x)),
+                                                 Bool => x -> parse(Bool, x))
 
-    for (k, v) in typeparsers
-        type2parser[k] = v
-    end
-    for (k, T) in index2type
-        if !haskey(type2parser, T)
-            type2parser[T] = x -> parse(T, x)
-        end
+    for (T, Func) in typeparsers
+        type2parser[T] = Func
     end
     @assert all(v -> isa(v, Function), values(type2parser))
     @assert all(v -> isa(v, Function), values(index2parser))
@@ -128,23 +128,42 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     end
 
     valtypes = typeof.(vals)
-    coltypes = Type[promote_type(valtypes[:, col]...) for col in 1:size(valtypes, 2)]
+    coltypes = Vector{Type}(size(vals, 2))
+    for col in 1:length(coltypes)
+        if haskey(index2type, col)
+            coltypes[col] = index2type[col]
+
+        else
+            if any(x -> x == String, valtypes[:, col])
+                coltypes[col] = String
+                for (row, v) in enumerate(vals[:, col])
+                    vals[row, col] = isnull(vals[row, col]) ? vals[row, col] : string(vals[row, col])
+                end
+            else
+                coltypes[col] = promote_type([T for T in valtypes[:, col] if T != Null]...)
+            end
+        end
+        if (haskey(index2nullable, col) && index2nullable[col]) ||
+            any(x -> x == Null, valtypes[:, col])
+            coltypes[col] = Union{coltypes[col], Null}
+        end
+    end
     if any(values(index2nullable)) && !any(isnull, values(encodings))
         throw(ArgumentError("""
-                            Nullable columns have been requested but the user has not specified any
-                            strings to interpret as null values via the `encodings` argument.
+                            Nullable columns have been requested but the user has not specified any strings to interpret as null values via the `encodings` argument.
                             """))
-    end
-    for (k,v) in index2nullable
-        if v
-            coltypes[k] = Union{coltypes[k], Null}
-        end
     end
 
     n = size(vals, 1)
     data = [Vector{T}(n) for T in coltypes]
-    for col in 1:numcols
-        data[col] .= vals[:, col]
+    for (col, T) in enumerate(coltypes)
+        if T == String
+            for (row, val) in enumerate(vals[:, col])
+                data[col][row] = string(val)
+            end
+        else
+            data[col] .= vals[:, col]
+        end
     end
 
     for (i, T) in enumerate(coltypes)
@@ -153,23 +172,25 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
     end
 
-    while !eof(source)
-        line = _readline(source, comment)
+    while !isempty(splitsource)
+        line = _readline(splitsource, comment)
         currentline += 1
         if in(currentline, skiprows) || isempty(line)
             continue
         end
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
         while e
-            if eof(source)
+            if isempty(splitsource)
                 throw(ErrorException("unexpected EOF"))
             else
-                line *= "\n" * readline(source)
+                line *= "\n" * shift!(splitsource)
                 fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             end
         end
         if length(fields) != numcols
-            handlemalformed(numcols, length(fields), currentline, skipmalformed)
+            if !isempty(splitsource)
+                handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
+            end
             continue
         end
         for (i, f) in enumerate(fields)
@@ -182,21 +203,23 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             catch
                 if haskey(encodings, f)
                     throw(ErrorException("""
-                                         Error parsing field $f in row $currentline, column $i.
+                                         Error parsing field "$f" in row $currentline, column $i.
                                          Unable to push value $(encodings[f]) to column of type $(eltype(data[i]))
                                          Possible fixes include:
-                                           1. set `typedetectrows` to a value >= $i
+                                           1. set `typedetectrows` to a value >= $currentline
                                            2. manually specify the element-type of column $i via the `types` argument
                                            3. manually specify a parser for column $i via the `parsers` argument
+                                           4. if the value is null, setting the `isnullable` argument
                                          """))
                 else
                     throw(ErrorException("""
-                                         Error parsing field $f in row $currentline, column $i.
-                                         Unable to parse field $f as type $(eltype(data[i]))
+                                         Error parsing field "$f" in row $currentline, column $i.
+                                         Unable to parse field "$f" as type $(eltype(data[i]))
                                          Possible fixes include:
-                                           1. set `typedetectrows` to a value >= $i
+                                           1. set `typedetectrows` to a value >= $currentline
                                            2. manually specify the element-type of column $i via the `types` argument
                                            3. manually specify a parser for column $i via the `parsers` argument
+                                           4. if the value is null, setting the `isnullable` argument
                                          """))
                 end
             end
