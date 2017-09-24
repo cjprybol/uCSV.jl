@@ -3,7 +3,8 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
     inquotes = false
     escaped = false
     toskip = Vector{Int}(0)
-    for (i, c) in enumerate(field)
+    for i in eachindex(field)
+        c = field[i]
         if escaped
             escaped = false
         elseif !inquotes
@@ -21,7 +22,7 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
             end
         else    # inquotes
             if c == quotes
-                if quotes != escape || length(find(c -> c == quotes, field[chr2ind(field,i):end])) == 1
+                if quotes != escape || length(find(c -> c == quotes, field[i:end])) == 1
                     inquotes = false
                     push!(toskip, i)
                 else
@@ -44,7 +45,8 @@ function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
     inquotes = false
     escaped = false
     toskip = Vector{Int}(0)
-    for (i, c) in enumerate(field)
+    for i in eachindex(field)
+        c = field[i]
         if !inquotes
             if trimwhitespace && ismatch(r"\s", string(c))
                 push!(toskip, i)
@@ -72,7 +74,8 @@ function checkfield(field, quotes::Null, escape::Char, trimwhitespace::Bool)
     inquotes = false
     escaped = false
     toskip = Vector{Int}(0)
-    for (i, c) in enumerate(field)
+    for i in eachindex(field)
+        c = field[i]
         if escaped
             escaped = false
         elseif c == escape
@@ -93,7 +96,8 @@ function checkfield(field, quotes::Null, escape::Null, trimwhitespace::Bool)
     escaped = false
     toskip = Vector{Int}(0)
     if trimwhitespace
-        for (i, c) in enumerate(field)
+        for i in eachindex(field)
+            c = field[i]
             if ismatch(r"\s", string(c))
                 push!(toskip, i)
             else

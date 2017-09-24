@@ -4,7 +4,9 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     currentline = 0
     colnames = Vector{String}()
-    splitsource = split(rstrip(Base.read(source, String)), r"\r\n?|\n")
+    rawstring = rstrip(Base.read(source, String))
+    isempty(rawstring) && return Any[], Vector{String}()
+    splitsource = split(rawstring, r"\r\n?|\n")
     if isa(header, Vector{String})
         colnames = header
     elseif header > 0
@@ -36,6 +38,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     while !isempty(splitsource) && linesparsedfortypedetection < typedetectrows
         line = _readline(splitsource, comment)
         currentline += 1
+        linesparsedfortypedetection += 1
         if in(currentline, skiprows)
             continue
         end
@@ -48,13 +51,14 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             end
         end
-        linesparsedfortypedetection += 1
         if linesparsedfortypedetection == 1
             numcols = length(fields)
             rawstrings = Array{String, 2}(typedetectrows, numcols)
             isquoted = falses(numcols)
         elseif length(fields) != numcols
             handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
+            linesparsedfortypedetection -= 1
+            continue
         end
         rawstrings[linesparsedfortypedetection, :] .= fields
         isquoted .|= quoted
@@ -91,7 +95,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                                                  Float64 => x -> parse(Float64, x),
                                                  String => x -> string(x),
                                                  Date => x -> parse(Date, x),
-                                                 DateTime => x -> parse(Datetime, x),
+                                                 DateTime => x -> parse(DateTime, x),
                                                  Symbol => x -> Symbol(string(x)),
                                                  Bool => x -> parse(Bool, x))
 
@@ -110,7 +114,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             elseif haskey(index2parser, col)
                 vals[row, col] = index2parser[col](rawstrings[row, col])
             elseif haskey(index2type, col)
-                vals[row, col] = type2parser[index2type[col]](rawstrings[row, col])
+                vals[row, col] = type2parser[Nulls.T(index2type[col])](rawstrings[row, col])
             else
                 tryint = tryparse(Int, rawstrings[row, col])
                 if !isnull(tryint)
@@ -132,7 +136,6 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     for col in 1:length(coltypes)
         if haskey(index2type, col)
             coltypes[col] = index2type[col]
-
         else
             if any(x -> x == String, valtypes[:, col])
                 coltypes[col] = String
@@ -188,10 +191,14 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             end
         end
         if length(fields) != numcols
-            if !isempty(splitsource)
+            if !isnull(comment) && startswith(fields[1], comment)
+                continue
+            elseif length(fields) == 1 && isempty(strip(fields[1]))
+                continue
+            else
                 handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
+                continue
             end
-            continue
         end
         for (i, f) in enumerate(fields)
             try
@@ -205,7 +212,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                     throw(ErrorException("""
                                          Error parsing field "$f" in row $currentline, column $i.
                                          Unable to push value $(encodings[f]) to column of type $(eltype(data[i]))
-                                         Possible fixes include:
+                                         Possible fixes may include:
                                            1. set `typedetectrows` to a value >= $currentline
                                            2. manually specify the element-type of column $i via the `types` argument
                                            3. manually specify a parser for column $i via the `parsers` argument
@@ -215,11 +222,11 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                     throw(ErrorException("""
                                          Error parsing field "$f" in row $currentline, column $i.
                                          Unable to parse field "$f" as type $(eltype(data[i]))
-                                         Possible fixes include:
+                                         Possible fixes may include:
                                            1. set `typedetectrows` to a value >= $currentline
                                            2. manually specify the element-type of column $i via the `types` argument
                                            3. manually specify a parser for column $i via the `parsers` argument
-                                           4. if the value is null, setting the `isnullable` argument
+                                           4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.
                                          """))
                 end
             end

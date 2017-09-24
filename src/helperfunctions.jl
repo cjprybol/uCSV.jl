@@ -78,6 +78,12 @@ function _readline(splitsource::Vector{T}, comment) where T
     return line
 end
 
-function DataFrames.DataFrame(data, colnames::Vector{String})
-    DataFrames.DataFrame(data, Symbol.(colnames))
+function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
+    data = output[1]
+    header = output[2]
+    if isempty(header)
+        return DataFrames.DataFrame(data)
+    else
+        return DataFrames.DataFrame(data, Symbol.(header))
+    end
 end
