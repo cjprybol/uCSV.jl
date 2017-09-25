@@ -4,11 +4,23 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     currentline = 0
     colnames = Vector{String}()
+    # strip excessive newlines at end of file
     rawstring = rstrip(Base.read(source, String))
+    # stop here if an empty file
     isempty(rawstring) && return Any[], Vector{String}()
+    # handle unicode "beginning of message" start to the file
+    if rawstring[1] == '\ufeff'
+        rawstring = string(rawstring[chr2ind(rawstring,2):end])
+    end
+    # call newlines based on linux, mac, or windows line endings
     splitsource = split(rawstring, r"\r\n?|\n")
+    #######################################################################################
+    # HEADER
+    #######################################################################################
+    # user provided
     if isa(header, Vector{String})
         colnames = header
+    # parse header from row `header` as specified by the user
     elseif header > 0
         line = _readline(splitsource, comment)
         currentline += 1
@@ -18,8 +30,9 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
         if currentline == header
             fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
+            # e is true if `getfields` determined that we split a line prematurely on a quoted newline
             while e
-                if eof(splitsource)
+                if isempty(splitsource)
                     throw(ErrorException("unexpected EOF"))
                 else
                     line *= "\n" * shift!(splitsource)
@@ -30,6 +43,9 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
     end
 
+    #######################################################################################
+    # DETERMINE COLUMN TYPES AND PARSING FUNCTIONS FOR EACH COLUMN
+    #######################################################################################
     numcols = 0
     rawstrings = Array{String, 2}(typedetectrows, numcols)
     isquoted = Vector{Bool}(numcols)
@@ -38,10 +54,10 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     while !isempty(splitsource) && linesparsedfortypedetection < typedetectrows
         line = _readline(splitsource, comment)
         currentline += 1
-        linesparsedfortypedetection += 1
         if in(currentline, skiprows)
             continue
         end
+        linesparsedfortypedetection += 1
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
         while e
             if isempty(splitsource)
@@ -82,6 +98,8 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                                 """))
         end
     end
+
+    # convert all of the available parsing requests to dictionaries index by column-index
     index2type::Dict{Int, Type} = getintdict(types, numcols, colnames)
     for (i, iq) in enumerate(isquoted)
         if !haskey(index2type, i) && iq
@@ -102,11 +120,15 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     for (T, Func) in typeparsers
         type2parser[T] = Func
     end
+    # anonymous functions don't play well with the type-system and would refuse anonymous
+    # functions as `Function`s, so we have to give a lax function restriction and enforce
+    # it manually here
     @assert all(v -> isa(v, Function), values(type2parser))
     @assert all(v -> isa(v, Function), values(index2parser))
 
     vals = Array{Any, 2}(size(rawstrings)...)
 
+    # convert parsed fields from raw strings to correct types based on user-requests and defaults
     for col in 1:size(rawstrings, 2)
         for row in 1:size(rawstrings, 1)
             if haskey(encodings, rawstrings[row, col])
@@ -131,6 +153,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
     end
 
+    # determine the type of each column of data based on parsed data and user-specified types
     valtypes = typeof.(vals)
     coltypes = Vector{Type}(size(vals, 2))
     for col in 1:length(coltypes)
@@ -157,6 +180,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                             """))
     end
 
+    # create typed data columns and fill the columns with data parsed while detecting types
     n = size(vals, 1)
     data = [Vector{T}(n) for T in coltypes]
     for (col, T) in enumerate(coltypes)
@@ -169,16 +193,19 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
     end
 
+    # fill in remaining column parsing rules with type rules
     for (i, T) in enumerate(coltypes)
         if !haskey(index2parser, i)
             index2parser[i] = x -> type2parser[Nulls.T(T)](x)
         end
     end
-
+    #######################################################################################
+    # PARSE REMAINDER OF FILE WITH PARSING FUNCTIONS FOR EACH COLUMN
+    #######################################################################################
     while !isempty(splitsource)
         line = _readline(splitsource, comment)
         currentline += 1
-        if in(currentline, skiprows) || isempty(line)
+        if in(currentline, skiprows)
             continue
         end
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
@@ -233,6 +260,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
     end
     data = convert(Vector{Any}, data)
+    # apply CategoricalVector requests
     for (k,v) in index2categorical
         if v
             data[k] = CategoricalVector(data[k])

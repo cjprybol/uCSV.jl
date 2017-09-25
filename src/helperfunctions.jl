@@ -83,6 +83,8 @@ function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
     header = output[2]
     if isempty(header)
         return DataFrames.DataFrame(data)
+    elseif isempty(data)
+        return DataFrames.DataFrame(Any[[] for i in 1:length(header)], Symbol.(header))
     else
         return DataFrames.DataFrame(data, Symbol.(header))
     end
