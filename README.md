@@ -38,5 +38,5 @@ If you find a limitation in capability or performance bottleneck that you can im
 ## Acknowledgements
 
 - [Contributors](https://github.com/cjprybol/uCSV.jl/graphs/contributors)
-- Bug Finders:
+- 🐛s:
     - Your name here!
