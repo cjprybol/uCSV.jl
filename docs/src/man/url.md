@@ -1,7 +1,7 @@
 # Reading data from URLs
 
 Using the [HTTP.jl](https://github.com/JuliaWeb/HTTP.jl) package
-```jldoctest
+```
 julia> using uCSV, DataFrames, HTTP
 
 julia> html = "https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv";

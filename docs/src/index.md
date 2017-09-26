@@ -1,12 +1,13 @@
 # uCSV.jl Documentation
 
-```@contents
-```
+## Functions
 
 ```@docs
 uCSV.read
 uCSV.write
 ```
+
+## Manual
 
 ```@contents
 Pages = [

@@ -64,15 +64,23 @@ Skipping comments by declaring what commented lines start with and what line the
     Lines skipped because they are blank/empty or via `comment="..."` are not counted towards the row number used for locating `header=#`. For example, if the first 5 lines of your file are blank, and the next 5 are comments, you would still set `header=1` to read the row that is on the 11-th line of the input source.
 
 ```jldoctest
-using uCSV
-s =
-"""
-# i am a comment
-I'm the header
-""";
-data, header = uCSV.read(IOBuffer(s), comment='#', header=1);
-data
-header
+julia> using uCSV
+
+julia> s =
+       """
+       # i am a comment
+       I'm the header
+       """;
+
+julia> data, header = uCSV.read(IOBuffer(s), comment='#', header=1);
+
+julia> data
+0-element Array{Any,1}
+
+julia> header
+1-element Array{String,1}:
+ "I'm the header"
+
 ```
 
 Skipping comments, declaring the header row, and skipping some data

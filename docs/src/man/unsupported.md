@@ -6,7 +6,7 @@ This package relies heavily on the String capabilities of the base Julia languag
 
 ### Recommended Solutions
 
-For converting your text file to UTF-8, consider using tools like [iconv](https://en.wikipedia.org/wiki/Iconv) or [StringEncodings.jl]().
+For converting your text file to UTF-8, consider using tools like [iconv](https://en.wikipedia.org/wiki/Iconv) or [StringEncodings.jl](https://github.com/nalimilan/StringEncodings.jl).
 
 ## Dataset doesn't use Unix `\n` or Windows `\r\n` line endings
 

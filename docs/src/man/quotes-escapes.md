@@ -2,7 +2,7 @@
 
 ## Quoted Fields
 
-Quotes are not interpretted by default
+Quotes are not interpreted by default
 ```jldoctest
 julia> using uCSV, DataFrames
 

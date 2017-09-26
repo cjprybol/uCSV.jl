@@ -27,7 +27,6 @@ julia> data
 julia> header
 0-element Array{String,1}
 
-# get it as a matrix!
 julia> uCSV.tomatrix(uCSV.read(IOBuffer(s)))
 3×3 Array{Float64,2}:
  1.0  1.0  1.0

@@ -33,18 +33,31 @@ julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3))
 
 Declaring that all columns may contain missing values
 ```jldoctest
-using uCSV, DataFrames, Nulls
-s =
-"""
-1,hey,1
-2,you,2
-3,,3
-4,"",4
-5,NULL,5
-6,NA,6
-""";
-encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
-DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true))
+julia> using uCSV, DataFrames, Nulls
+
+julia> s =
+       """
+       1,hey,1
+       2,you,2
+       3,,3
+       4,"",4
+       5,NULL,5
+       6,NA,6
+       """;
+
+julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+
+julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true))
+6×3 DataFrames.DataFrame
+│ Row │ x1 │ x2   │ x3 │
+├─────┼────┼──────┼────┤
+│ 1   │ 1  │ hey  │ 1  │
+│ 2   │ 2  │ you  │ 2  │
+│ 3   │ 3  │ null │ 3  │
+│ 4   │ 4  │ null │ 4  │
+│ 5   │ 5  │ null │ 5  │
+│ 6   │ 6  │ null │ 6  │
+
 ```
 
 Declaring whether each column may contain missing values with a boolean vector

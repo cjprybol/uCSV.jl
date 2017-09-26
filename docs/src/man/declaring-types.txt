@@ -132,13 +132,14 @@ julia> DataFrame(uCSV.read(IOBuffer(s), encodings=merge(trues, falses)))
 
 Declaring all columns as Symbol
 ```jldoctest
-using uCSV, DataFrames
-s =
-"""
-x1
-y7
-µ∆
-""";
+julia> using uCSV, DataFrames
+
+julia> s =
+       """
+       x1
+       y7
+       µ∆
+       """;
 
 julia> df = DataFrame(uCSV.read(IOBuffer(s), types=Symbol))
 3×1 DataFrames.DataFrame
@@ -179,15 +180,26 @@ true
 
 Declaring the type of specific columns
 ```jldoctest
-using uCSV, DataFrames
-s =
-"""
-x1
-y7
-µ∆
-""";
-df = DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Symbol)))
-eltype.(df.columns) == [Symbol]
+julia> using uCSV, DataFrames
+
+julia> s =
+       """
+       x1
+       y7
+       µ∆
+       """;
+
+julia> df = DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Symbol)))
+3×1 DataFrames.DataFrame
+│ Row │ x1 │
+├─────┼────┤
+│ 1   │ x1 │
+│ 2   │ y7 │
+│ 3   │ µ∆ │
+
+julia> eltype.(df.columns) == [Symbol]
+true
+
 ```
 
 ## Dates
@@ -211,7 +223,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Date))
 
 ### Dates that require user-specified parsing rules
 
-Specifying column types in conjuction with declaring a type-specific parser function
+Specifying column types in conjunction with declaring a type-specific parser function
 ```jldoctest
 julia> using uCSV, DataFrames
 
