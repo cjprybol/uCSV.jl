@@ -25,6 +25,7 @@ It will give you back the parsed dataset and an empty header.
 - [x] Ability to trim extra whitespace around fields and end of lines
 - [x] Ability to specify how many rows to read for detecting column types
 - [x] Escape characters for quotes within quoted fields, and for quotes, newlines, and delimiters outside of quoted fields
+- [x] Reading files from URLs (via [HTTP.jl](https://github.com/JuliaWeb/HTTP.jl)) and from compressed sources (via [TranscodingStreams.jl](https://github.com/bicycle1885/TranscodingStreams.jl#codec-packages))
 
 `uCSV.read` will only try and parse your data into `Int`s, `Float64`s, or `String`s, by default. No need to worry about the parser imposing any specialty vector- or element-types during the parsing that may conflict with downstream processing, although you're more than welcome to request specialized types when desired. If there's something `uCSV` doesn't support that you'd like to see, file an issue or open a pull request!
 
@@ -36,20 +37,20 @@ Give `uCSV.write` some data and a header (or just one of them), a delimiter (if 
 
 **uCSV.jl wants you to spend less time figuring out how to parse your data and more time actually working with it**.
 
-The keys to acheiving this are to make sure:
+Some keys requirements to acheiving this are:
 
-    1. The documentation and examples are thorough enough to help users construct appropriate parsing arguments
-    2. The errors and warnings are verbose and informative enough to coach users through successfully updating improperly set arguments
-    3. The parser is flexible enough to allow arbitrarily complex parsing rules, enabling advanced users to predifine complex parsing rules to both improve parsing efficiency and capabilities well-beyond the average dataset from your intro to data analysis class.
+1. The documentation and examples are thorough enough to help users construct appropriate parsing arguments
+2. The errors and warnings are verbose and informative enough to coach users through successfully updating improperly set arguments
+3. The parser is flexible enough to allow arbitrarily complex parsing rules, enabling advanced users to predifine complex parsing rules to both improve parsing efficiency and capabilities well-beyond the average dataset from your intro to data analysis class.
 
-This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. The long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
+This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. My long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
 
 # Testing Library
 
 Currently tested against:
 
-    - >75 datasets hand-curated for their thorough coverage of common edge-cases and ugly formatting.
-    - TODO: RDatasets
+- 75+ datasets hand-curated for their thorough coverage of common edge-cases and ugly formatting.
+- TODO: RDatasets
 
 # Parsing Cheatsheet
 
@@ -714,12 +715,15 @@ julia> DataFrame(uCSV.read(IOBuffer(s), delim="≤≥", quotes='†'))
 # Common issues that are not supported
 
 **Dataset isn't UTF-8**
+
 Try `iconv` or the [StringEncodings.jl]() package.
 
 **Dataset doesn't use Unix `\n` or Windows `\r\n` line endings**
+
 Try viewing your file in a command-line plain text viewer like `vi` or `less`. If you see `^M` character sequences at the expected line breaks, you'll need to convert those to either `\n` or `\r\n` yourself.
 
 **["Smart" punctation](http://smartquotesforsmartpeople.com/)**
+
 Only single quote characters are supported at this point. Any individual "smart" quote will work, but different "smart" quotes for the beginning and end of a field is not supported. It should be possible to add but the number of possible "smart" quotes can get out of hand very quickly. You'll likely be better off converting all of them to simple `"` dumb-quotes for the purpose of your data analysis. Save the smart quotes for your publications!
 
 # Read speed compared to others
