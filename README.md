@@ -1,12 +1,6 @@
 # uCSV.jl
 
-[![Build Status](https://travis-ci.org/cjprybol/uCSV.jl.svg?branch=master)](https://travis-ci.org/cjprybol/uCSV.jl)
-
-[![Coverage Status](https://coveralls.io/repos/cjprybol/uCSV.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/cjprybol/uCSV.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/cjprybol/uCSV.jl/coverage.svg?branch=master)](http://codecov.io/github/cjprybol/uCSV.jl?branch=master)
-
-uCSV.jl implements 2 main functions, `uCSV.read` and `uCSV.write`
+[![Build Status](https://travis-ci.org/cjprybol/uCSV.jl.svg?branch=master)](https://travis-ci.org/cjprybol/uCSV.jl) [![Coverage Status](https://coveralls.io/repos/cjprybol/uCSV.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/cjprybol/uCSV.jl?branch=master) [![codecov.io](http://codecov.io/github/cjprybol/uCSV.jl/coverage.svg?branch=master)](http://codecov.io/github/cjprybol/uCSV.jl?branch=master)
 
 # `uCSV.read`
 
@@ -19,28 +13,47 @@ uCSV.jl implements 2 main functions, `uCSV.read` and `uCSV.write`
 
 It will give you back the parsed dataset and an empty header.
 
-`uCSV.read` enables you to construct more complex parsing-rules through a compact and flexible API that aims to handle everything from the simple to the nightmarish. Do you have multi-character unicode delimiters? If so, `uCSV.read()` has you covered. Your co-workers couldn't decide if they wanted to use `"TRUE"`, `"True"`, `"true"`, `"T"`, `"t"`, `"yes"`, or `1` for booleans, and they ended up using all of them? No problem, you can specify as many or as few as you want to encode as Julia's `true` upon parsing. You can specify datetime parsing semantics, request that `Float64`s be parsed with european-style decimals, e.g. `145,67` -> `145.67`, and skip comments, malformed lines, or just lines that you don't want. `uCSV.read` will only try and parse your data into `Int`s, `Float64`s, or `String`s, by default. No need to worry about the parser imposing any specialty vector- or element-types during the parsing, although you're more than welcome to request any more specialized types if you wish. If there's something `uCSV` doesn't support that you'd like to see, file an issue or open a PR and we'll see what we can do!
+`uCSV.read` enables you to construct more complex parsing-rules through a compact and flexible API that aims to handle everything from the simple to the nightmarish. 
+
+- [x] Multi-character Unicode String delimiters
+- [x] Unlimited field => value encodings for when you have multiple null-strings, boolean encodings, or other special fields
+- [x] Built-in support for Strings, Ints, Float64s, Symbols, Dates, DateTimes, and Booleans with default formatting rules
+- [x] Flexible methods for manually specifying column types, nullability, type- and column-specific parsers, and CategoricalVectors
+- [x] Commented lines are skipped on request, blank lines skipped by default
+- [x] Ability to skip any rows in the dataset during parsing
+- [x] Ability to skip malformed rows
+- [x] Ability to trim extra whitespace around fields and end of lines
+- [x] Ability to specify how many rows to read for detecting column types
+- [x] Escape characters for quotes within quoted fields, and for quotes, newlines, and delimiters outside of quoted fields
+
+`uCSV.read` will only try and parse your data into `Int`s, `Float64`s, or `String`s, by default. No need to worry about the parser imposing any specialty vector- or element-types during the parsing that may conflict with downstream processing, although you're more than welcome to request specialized types when desired. If there's something `uCSV` doesn't support that you'd like to see, file an issue or open a pull request!
 
 # `uCSV.write()`
 
-`uCSV.write` is similarly simple. Give it a some data, a header, a delimiter (if you wan't something other than a comma), and a quote character (if you want fields to be quoted). It'll do some simple formatting behind the scenes before writing to disk. If anyone would like to write to IO streams as well, please open an issue or file a pull request so I know there is interest!
+Give `uCSV.write` some data and a header (or just one of them), a delimiter (if you wan't something other than a comma), and a quote character (if you want fields to be quoted). It'll create a file at the specified location and write to disk. Writing to IOStreams is not yet supported, but if you'd like this feature, please file an issue or open a pull request!
 
 # why uCSV.jl?
 
 **uCSV.jl wants you to spend less time figuring out how to parse your data and more time actually working with it**.
 
-This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. The long term goal is to merge the features that work best in this package with the more efficient lower level parses in CSV.jl and/or TextParse.jl.
+The keys to acheiving this are to make sure:
 
-# Testing library
+    1. The documentation and examples are thorough enough to help users construct appropriate parsing arguments
+    2. The errors and warnings are verbose and informative enough to coach users through successfully updating improperly set arguments
+    3. The parser is flexible enough to allow arbitrarily complex parsing rules, enabling advanced users to predifine complex parsing rules to both improve parsing efficiency and capabilities well-beyond the average dataset from your intro to data analysis class.
+
+This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. The long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
+
+# Testing Library
 
 Currently tested against:
 
-    - >50 datasets hand-curated for their thorough coverage of common edge-cases and ugly formatting.
+    - >75 datasets hand-curated for their thorough coverage of common edge-cases and ugly formatting.
     - TODO: RDatasets
 
-# Parsing cheatsheet
+# Parsing Cheatsheet
 
-**default**
+**Default**
 ```julia
 # input
 using uCSV
@@ -64,7 +77,7 @@ julia> header
 
 ```
 
-**header**
+**Header**
 ```julia
 # input
 using uCSV
@@ -92,8 +105,7 @@ julia> header
 
 ```
 
-**reading into a DataFrame**
-
+**Reading into DataFrames**
 ```julia
 # input
 using uCSV, DataFrames
@@ -113,7 +125,8 @@ julia> DataFrame(uCSV.read(IOBuffer(s)))
 │ 2   │ 2.0 │ 2.0 │ 2.0 │
 │ 3   │ 3.0 │ 3.0 │ 3.0 │
 ```
-or with a header
+
+**Reading into DataFrames with a header**
 ```julia
 # input
 s =
@@ -135,9 +148,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), header = 1))
 
 ```
 
-
-**nulls**
-
+**Nulls**
 ```julia
 # input
 using uCSV, DataFrames, Nulls
@@ -210,7 +221,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, types=Dict(2 => Uni
 
 ```
 
-**booleans**
+**Booleans**
 ```julia
 # input
 using uCSV, DataFrames
@@ -250,7 +261,8 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Bool)))
 │ 2   │ false │
 
 ```
-or with encodings that Julia cannot parse as booleans by default
+
+**Non-default Boolean formats**
 ```julia
 # input
 s =
@@ -269,7 +281,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), encodings=Dict{String,Any}("T" => true, 
 
 ```
 
-**symbols**
+**Symbols**
 ```julia
 # input
 using uCSV, DataFrames
@@ -313,7 +325,7 @@ true
 
 ```
 
-**dates**
+**Dates**
 ```julia
 # input
 using uCSV, DataFrames
@@ -330,7 +342,8 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Date))
 │ 1   │ 2013-01-01 │
 
 ```
-or with date formats other than the default
+
+**Non-default Date formats**
 ```julia
 # input
 s =
@@ -353,7 +366,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 => x -> Date(x, "m/d/y
 
 ```
 
-**datetimes**
+**DateTimes**
 ```julia
 # input
 using uCSV, DataFrames
@@ -383,7 +396,7 @@ julia> df = DataFrame(uCSV.read(IOBuffer(s), colparsers=(x -> datetimeparser(x))
 
 ```
 
-**[decimal-comma floats](https://en.wikipedia.org/wiki/Decimal_mark#Hindu.E2.80.93Arabic_numeral_system)**
+**[Decimal-Comma Floats](https://en.wikipedia.org/wiki/Decimal_mark#Hindu.E2.80.93Arabic_numeral_system)**
 ```julia
 # input
 using uCSV, DataFrames
@@ -408,7 +421,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', colparsers=Dict(1 => x -> imp
 
 ```
 
-**other custom parsers**
+**Custom Parsers**
 ```julia
 using uCSV, DataFrames
 function myparser(x)
@@ -419,7 +432,7 @@ uCSV.read(my_input, colparsers=Dict(column => x -> myparser(x)))
 
 ```
 
-**quoted fields**
+**Quoted Fields**
 ```julia
 # input
 uCSV, DataFrames
@@ -450,7 +463,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), quotes='"'))
 
 ```
 
-**quoted fields with internal double quotes**
+**Quoted Fields w/ Internal Double Quotes**
 ```julia
 # input
 using uCSV, DataFrames
@@ -467,7 +480,7 @@ julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='"'))
 
 ```
 
-**escaped characters**
+**Escapes**
 ```julia
 # input
 using uCSV, DataFrames
@@ -485,7 +498,7 @@ julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='\\')
 
 ```
 
-**comments and skipping lines**
+**Comments and Skipped Lines**
 ```julia
 # input
 using uCSV, DataFrames
@@ -560,7 +573,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), skiprows=1:3))
 
 ```
 
-**malformed lines**
+**Malformed Lines**
 ```julia
 # input
 using uCSV, DataFrames
@@ -593,7 +606,7 @@ WARNING: Parsed 2 fields on row 2. Expected 1. Skipping...
 
 ```
 
-**read from a URL**
+**Read from a URL**
 ```julia
 # input
 using uCSV, DataFrames, HTTP
@@ -612,7 +625,7 @@ julia> DataFrame(uCSV.read(HTTP.body(HTTP.get(html)), quotes='"', header=1))
 
 ```
 
-**compressed (e.g. gzip, bzip2) file**
+**Compressed (e.g. gzip, bzip2) Files**
 ```julia
 # input
 using uCSV, DataFrames, CodecZlib
@@ -637,7 +650,7 @@ julia> head(DataFrame(uCSV.read(iris_io, header=1)), 10)
 
 ```
 
-**categorical arrays**
+**CategoricalArrays**
 ```julia
 # input
 using uCSV, DataFrames
@@ -680,7 +693,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a"
 
 ```
 
-**hopefully you never actually need to do this, but you can**
+**This Atrocity**
 ```julia
 # input
 using uCSV, DataFrames
@@ -700,18 +713,18 @@ julia> DataFrame(uCSV.read(IOBuffer(s), delim="≤≥", quotes='†'))
 
 # Common issues that are not supported
 
-**dataset isn't UTF-8**
+**Dataset isn't UTF-8**
 Try `iconv` or the [StringEncodings.jl]() package.
 
-**dataset doesn't use Unix `\n` or Windows `\r\n` line endings**
+**Dataset doesn't use Unix `\n` or Windows `\r\n` line endings**
 Try viewing your file in a command-line plain text viewer like `vi` or `less`. If you see `^M` character sequences at the expected line breaks, you'll need to convert those to either `\n` or `\r\n` yourself.
 
-**[fancy/smart quotes, apostrophes, and other punctation](http://smartquotesforsmartpeople.com/)**
+**["Smart" punctation](http://smartquotesforsmartpeople.com/)**
 Only single quote characters are supported at this point. Any individual "smart" quote will work, but different "smart" quotes for the beginning and end of a field is not supported. It should be possible to add but the number of possible "smart" quotes can get out of hand very quickly. You'll likely be better off converting all of them to simple `"` dumb-quotes for the purpose of your data analysis. Save the smart quotes for your publications!
 
 # Read speed compared to others
 
-**setup**
+**Setup**
 
 All data will be read into equivalent DataFrames
 ```julia
@@ -723,7 +736,7 @@ function textparse2DF(x)
 end
 ```
 
-**[iris](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/iris.csv.gz)**
+**[Iris](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/iris.csv.gz)**
 ```julia
 iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
@@ -831,7 +844,7 @@ Test Passed
 
 ```
 
-**[country indicators](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/indicators.csv.gz)**
+**[Country Indicators](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/indicators.csv.gz)**
 ```julia
 indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(indicators_file)), quotes='"'));
@@ -857,7 +870,7 @@ true
 
 ```
 
-**[yellowtaxi](https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-01.csv)**
+**[Yellow Taxi](https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-01.csv)**
 ```julia
 taxi_file = joinpath(homedir(), "Downloads", "yellow_tripdata_2015-01.csv");
 @time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null)));
