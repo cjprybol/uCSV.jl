@@ -1,4 +1,4 @@
-using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls
+using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls, CategoricalArrays
 
 # TODO make this @__FILE__
 files = joinpath(Pkg.dir("uCSV"), "test", "data")
@@ -16,6 +16,19 @@ GDS = GzipDecompressionStream
                        [1.0, 2.0, 3.0],
                        [1.0, 2.0, 3.0]]
     @test header == Vector{String}()
+end
+
+@testset "uCSV.tomatrix" begin
+    s =
+    """
+    1.0,1.0,1.0
+    2.0,2.0,2.0
+    3.0,3.0,3.0
+    """;
+    @test uCSV.tomatrix(uCSV.read(IOBuffer(s))) ==
+        [1.0 1.0 1.0;
+         2.0 2.0 2.0;
+         3.0 3.0 3.0]
 end
 
 @testset "Mixed Type Matrix" begin
@@ -571,7 +584,7 @@ end
     2,0,16
     """
     e = @test_throws ErrorException uCSV.read(IOBuffer(s))
-    @test e.value.msg == "Parsed 3 fields on row 2. Expected 1.\nline:\n1,1,10\nPossible fixes may include:\n  1. including 2 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
+    @test e.value.msg == "Parsed 3 fields on row 2. Expected 1.\nline:\n1,1,10\nPossible fixes may include:\n  1. including 2 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
 
     e = @test_throws ErrorException uCSV.read(IOBuffer(s), header = 1)
     @test e.value.msg == "parsed header String[\"A;B;C\"] has 1 columns, but 3 were detected the in dataset.\n"
@@ -583,7 +596,7 @@ end
     6,1
     """
     e = @test_throws ErrorException uCSV.read(IOBuffer(s))
-    @test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nline:\n6,1\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
+    @test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nline:\n6,1\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
 end
 
 @testset "Booleans" begin
@@ -650,7 +663,7 @@ end
 @testset "AIRSIGMET.csv.gz" begin
     f = joinpath(files, "AIRSIGMET.csv.gz")
     e = @test_throws ErrorException DataFrame(uCSV.read(GDS(open(f))))
-    @test e.value.msg == "Parsed 12 fields on row 6. Expected 1.\nline:\nraw_text,valid_time_from,valid_time_to,lon:lat points,min_ft_msl,max_ft_msl,movement_dir_degrees,movement_speed_kt,hazard,severity,airsigmet_type,\nPossible fixes may include:\n  1. including 6 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, set the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
+    @test e.value.msg == "Parsed 12 fields on row 6. Expected 1.\nline:\nraw_text,valid_time_from,valid_time_to,lon:lat points,min_ft_msl,max_ft_msl,movement_dir_degrees,movement_speed_kt,hazard,severity,airsigmet_type,\nPossible fixes may include:\n  1. including 6 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
     data, header = uCSV.read(GDS(open(f)), skipmalformed=true, header=1)
     @test data == Any[["No warnings", "285 ms", "data source=airsigmets", "1 results"]]
     @test header == ["No errors"]

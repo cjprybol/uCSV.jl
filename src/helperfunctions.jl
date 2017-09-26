@@ -54,7 +54,7 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
                          Possible fixes may include:
                            1. including $currentline in the `skiprows` argument
                            2. setting `skipmalformed=true`
-                           3. if this line is a comment, set the `comment` argument
+                           3. if this line is a comment, setting the `comment` argument
                            4. if fields are quoted, setting the `quotes` argument
                            5. if special characters are escaped, setting the `escape` argument
                            6. fixing the malformed line in the source or file before invoking `uCSV.read`
@@ -88,4 +88,15 @@ function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
     else
         return DataFrames.DataFrame(data, Symbol.(header))
     end
+end
+
+function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
+    data = output[1]
+    nrows = length(data)
+    ncols = length(data[1])
+    m = Array{promote_type(eltype.(data)...)}(nrows, ncols)
+    for col in 1:ncols
+        m[:, col] .= data[col]
+    end
+    return m
 end
