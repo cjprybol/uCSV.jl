@@ -386,16 +386,26 @@ julia> df = DataFrame(uCSV.read(IOBuffer(s), colparsers=(x -> datetimeparser(x))
 **[decimal-comma floats](https://en.wikipedia.org/wiki/Decimal_mark#Hindu.E2.80.93Arabic_numeral_system)**
 ```julia
 # input
-using uCSv, DataFrames
+using uCSV, DataFrames
 s =
 """
 19,97;3,14;999
 """
-imperialize(x) -> parse(Int, replace(x, ',', '.'))
+imperialize(x) = parse(Float64, replace(x, ',', '.'))
 
 # output
-DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Float64, 2 => Float64), typeparsers=Dict(Int => x -> imperialize(x))))
-DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 => x -> imperialize(x), 2 => x -> imperialize(x))))
+julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', types=Dict(1 => Float64, 2 => Float64), typeparsers=Dict(Float64 => x -> imperialize(x))))
+1×3 DataFrames.DataFrame
+│ Row │ x1    │ x2   │ x3  │
+├─────┼───────┼──────┼─────┤
+│ 1   │ 19.97 │ 3.14 │ 999 │
+
+julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', colparsers=Dict(1 => x -> imperialize(x), 2 => x -> imperialize(x))))
+1×3 DataFrames.DataFrame
+│ Row │ x1    │ x2   │ x3  │
+├─────┼───────┼──────┼─────┤
+│ 1   │ 19.97 │ 3.14 │ 999 │
+
 ```
 
 **other custom parsers**
@@ -627,6 +637,49 @@ julia> head(DataFrame(uCSV.read(iris_io, header=1)), 10)
 
 ```
 
+**categorical arrays**
+```julia
+# input
+using uCSV, DataFrames
+s =
+"""
+a,b,c
+a,b,c
+a,b,c
+a,b,c
+""";
+eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=true)).columns)
+eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=[true, true, true])).columns)
+eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=Dict(3 => true))).columns)
+eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a" => true))).columns)
+
+# output
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=true)).columns)
+3-element Array{DataType,1}:
+ CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalValue{String,UInt32}
+
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=[true, true, true])).columns)
+3-element Array{DataType,1}:
+ CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalValue{String,UInt32}
+
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=Dict(3 => true))).columns)
+3-element Array{DataType,1}:
+ String
+ String
+ CategoricalArrays.CategoricalValue{String,UInt32}
+
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a" => true))).columns)
+3-element Array{DataType,1}:
+ CategoricalArrays.CategoricalValue{String,UInt32}
+ String
+ String
+
+```
+
 **hopefully you never actually need to do this, but you can**
 ```julia
 # input
@@ -658,53 +711,170 @@ Only single quote characters are supported at this point. Any individual "smart"
 
 # Read speed compared to others
 
-**iris**
+**setup**
+
+All data will be read into equivalent DataFrames
 ```julia
-using uCSV, CSV, TextParse, CodecZlib
+using uCSV, CSV, TextParse, CodecZlib, Nulls, DataFrames, Base.Test
 GDS = GzipDecompressionStream;
+
+function textparse2DF(x)
+    DataFrame(Any[x[1]...], Symbol.(x[2]))
+end
+```
+
+**[iris](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/iris.csv.gz)**
+```julia
 iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
-
-@time uCSV.read(GDS(open(iris_file)), header=1);
-@time uCSV.read(GDS(open(iris_file)), header=1);
-
-@time CSV.read(GDS(open(iris_file)));
-@time CSV.read(GDS(open(iris_file)));
-
-@time csvread(GDS(open(iris_file)));
-@time csvread(GDS(open(iris_file)));
+@time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
+@time df2 = CSV.read(GDS(open(iris_file)), types=Dict(6=>String));
+@time df3 = textparse2DF(csvread(GDS(open(iris_file)), pooledstrings=false));
+@test df1 == df2 == df3
 ```
 
-[**yellowtaxi**](https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-01.csv)
-1.8Gb CSV
 ```julia
-using uCSV, CSV, TextParse, Nulls
-taxi_file = joinpath(homedir(), "Downloads", "yellow_tripdata_2015-01.csv");
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
+  3.791587 seconds (2.52 M allocations: 127.846 MiB, 1.99% gc time)
 
-@time uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null));
-@time uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null));
+julia> @time df2 = CSV.read(GDS(open(iris_file)), types=Dict(6=>String));
+  6.818591 seconds (4.07 M allocations: 200.507 MiB, 3.18% gc time)
 
-@time CSV.read(taxi_file);
-@time CSV.read(taxi_file);
+julia> @time df3 = textparse2DF(csvread(GDS(open(iris_file)), pooledstrings=false));
+  2.667487 seconds (1.78 M allocations: 96.523 MiB, 2.51% gc time)
 
-@time csvread(taxi_file);
-@time csvread(taxi_file);
+julia> @test df1 == df2 == df3
+Test Passed
+
 ```
 
-**indicators**
+**[0s-1s](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/0s-1s.csv.gz)**
+```julia
+ints_file = joinpath(Pkg.dir("uCSV"), "test", "data", "0s-1s.csv.gz");
+@time df1 = DataFrame(uCSV.read(GDS(open(ints_file)), header=1));
+@time df2 = CSV.read(GDS(open(ints_file)));
+@time df3 = textparse2DF(csvread(GDS(open(ints_file))));
+@test df1 == df2 == df3
+```
 
 ```julia
-using uCSV, CSV, TextParse, CodecZlib
-GDS = GzipDecompressionStream;
+julia> ints_file = joinpath(Pkg.dir("uCSV"), "test", "data", "0s-1s.csv.gz");
+
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(ints_file)), header=1));
+  6.379254 seconds (33.76 M allocations: 1.425 GiB, 7.30% gc time)
+
+julia> @time df2 = CSV.read(GDS(open(ints_file)));
+ 10.377598 seconds (10.11 M allocations: 358.625 MiB, 2.43% gc time)
+
+julia> @time df3 = textparse2DF(csvread(GDS(open(ints_file))));
+  2.525099 seconds (1.83 M allocations: 189.862 MiB, 3.67% gc time)
+
+julia> @test df1 == df2 == df3
+Test Passed
+
+```
+
+**[Flights](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/2010_BSA_Carrier_PUF.csv.gz)**
+```julia
+carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
+@time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict{String,Any}("" => null), types=Dict(3 =>  Union{String, Null})));
+@time df2 = CSV.read(GDS(open(carrier_file)), types=Dict(3 => Union{String, Null}, 4 => String, 5 => String, 8 => String));
+# does not parse correctly
+@time df3 = textparse2DF(csvread(GDS(open(carrier_file)), pooledstrings=false, type_detect_rows=228990, nastrings=[""]));
+@test_broken df1 == df2 == df3
+@test df1 == df2
+```
+
+```julia
+julia> carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
+
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict{String,Any}("" => null), types=Dict(3 =>  Union{String, Null})));
+ 51.146730 seconds (229.57 M allocations: 9.036 GiB, 49.18% gc time)
+
+julia> @time df2 = CSV.read(GDS(open(carrier_file)), types=Dict(3 => Union{String, Null}, 4 => String, 5 => String, 8 => String));
+ 13.113943 seconds (76.93 M allocations: 1.803 GiB, 32.44% gc time)
+
+julia> # does not parse correctly
+       @time df3 = textparse2DF(csvread(GDS(open(carrier_file)), pooledstrings=false, type_detect_rows=228990, nastrings=[""]));
+ 27.005981 seconds (49.83 M allocations: 2.734 GiB, 57.52% gc time)
+
+julia> @test_broken df1 == df2 == df3
+Test Broken
+Expression: df1 == df2 == df3
+
+
+julia> @test df1 == df2
+Test Passed
+```
+
+**[Human Genome Feature Format]()**
+```julia
+genome_file = joinpath(Pkg.dir("uCSV"), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
+@time df1 = DataFrame(uCSV.read(GDS(open(genome_file)), delim='\t', comment='#', types=Dict(1 => String)));
+@time df2 = CSV.read(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), delim='\t', types=Dict(1 => String, 2 => String, 3 => String, 6 => String, 7 => String, 8 => String, 9 => String), header=[:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9]);
+@test_broken df3 = textparse2DF(csvread(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), '\t', pooledstrings=false));
+@test df1 == df2
+```
+
+```julia
+julia> genome_file = joinpath(Pkg.dir("uCSV"), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
+
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(genome_file)), delim='\t', comment='#', types=Dict(1 => String)));
+ 48.559884 seconds (197.88 M allocations: 8.669 GiB, 50.47% gc time)
+
+julia> @time df2 = CSV.read(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), delim='\t', types=Dict(1 => String, 2 => String, 3 => String, 6 => String, 7 => String, 8 => String, 9 => String), header=[:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9]);
+ 22.231910 seconds (85.95 M allocations: 3.893 GiB, 44.77% gc time)
+
+julia> @test_broken df3 = textparse2DF(csvread(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), '\t', pooledstrings=false));
+
+julia> @test df1 == df2
+Test Passed
+
+```
+
+**[country indicators](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/indicators.csv.gz)**
+```julia
 indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz");
+@time df1 = DataFrame(uCSV.read(GDS(open(indicators_file)), quotes='"'));
+@time df2 = CSV.read(GDS(open(indicators_file)), header=[:x1, :x2, :x3, :x4, :x5, :x6], types=Dict(1 => String, 2 => String, 3 => String, 4 => String));
+@time df3 = textparse2DF(csvread(GDS(open(indicators_file)), pooledstrings=false, header_exists=false, colnames=[:x1, :x2, :x3, :x4, :x5, :x6]));
+@test df1 == df2 == df3
+```
 
-@time uCSV.read(GDS(open(indicators_file)), header=1, quotes='"');
-@time uCSV.read(GDS(open(indicators_file)), header=1, quotes='"');
+```julia
+julia> indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz");
 
-@time CSV.read(GDS(open(indicators_file)));
-@time CSV.read(GDS(open(indicators_file)));
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(indicators_file)), quotes='"'));
+ 77.891937 seconds (229.19 M allocations: 11.248 GiB, 41.44% gc time)
 
-@time csvread(GDS(open(indicators_file)));
-@time csvread(GDS(open(indicators_file)));
+julia> @time df2 = CSV.read(GDS(open(indicators_file)), header=[:x1, :x2, :x3, :x4, :x5, :x6], types=Dict(1 => String, 2 => String, 3 => String, 4 => String));
+ 17.559485 seconds (55.74 M allocations: 1.922 GiB, 26.93% gc time)
+
+julia> @time df3 = textparse2DF(csvread(GDS(open(indicators_file)), pooledstrings=false, header_exists=false, colnames=[:x1, :x2, :x3, :x4, :x5, :x6]));
+ 13.672462 seconds (13.38 M allocations: 1.384 GiB, 26.24% gc time)
+
+julia> eltype.(df1.columns) == eltype.(df2.columns) == eltype.(df3.columns)
+true
+
+```
+
+**[yellowtaxi](https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-01.csv)**
+```julia
+taxi_file = joinpath(homedir(), "Downloads", "yellow_tripdata_2015-01.csv");
+@time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null)));
+@time df2 = CSV.read(taxi_file, types=eltype.(df1.columns));
+@time df3 = textparse2DF(csvread(taxi_file));
+```
+
+```julia
+julia> @time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null)));
+455.962678 seconds (1.79 G allocations: 70.441 GiB, 49.24% gc time)
+
+julia> @time df2 = CSV.read(taxi_file, types=eltype.(df1.columns));
+112.266853 seconds (692.94 M allocations: 13.221 GiB, 72.15% gc time)
+
+julia> @time df3 = textparse2DF(csvread(taxi_file));
+ 67.999334 seconds (28.69 M allocations: 3.790 GiB, 56.92% gc time)
+
 ```
 
 # Write speed
