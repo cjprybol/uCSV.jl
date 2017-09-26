@@ -46,11 +46,11 @@ Take an input file or IOStream and user-defined parsing rules and return:
         - `escape='"'`
             - double-quotes within quotes, e.g. "firstname ""nickname"" lastname"
         - `escape='\\'`
-            - e.g. "first \\\"nickname\\\" last"
+            - e.g. "firstname \\\"nickname\\\" lastname"
 - `comment::Union{Char,String,Null}`
     - the character or string used for comment lines in your dataset
-        - note that skipped comment lines do not contribute to the line count when
-          determing the row for parsing the header if `header isa Int` or for skiprows
+        - note that skipped comment lines do not contribute to the line count for the header
+          (if the user requests parsing a header on a specific row) or for skiprows
     - default: `comment=null`
         - by default, the parser does not check for comments
     - frequently used:
@@ -59,7 +59,7 @@ Take an input file or IOStream and user-defined parsing rules and return:
         - `comment='#!'`
 - `encodings::Dict{String,Any}`
     - A dictionary mapping parsed strings to desired julia values
-        - if your dataset has booleans or nulls, you'll need to use this!
+        - if your dataset has booleans that are not `"true"` and `"false"` or nulls, you'll need to use this!
     - default: `encodings=Dict{String, Any}()`
         - by default, the parser does not check for any reserved fields
     - frequently used:
@@ -71,25 +71,25 @@ Take an input file or IOStream and user-defined parsing rules and return:
         - `encodings=Dict{String, Any}("True" => true, "False" => false)`
         - `encodings=Dict{String, Any}("T" => true, "F" => false)`
         - `encodings=Dict{String, Any}("yes" => true, "no" => false)`
-        - ...
+        - ... your encodings here ...
             - can include any number of String => value mappings
-            - note that if the user requests quotes, escapes, or trimwhitespace, these
-              will be applied BEFORE checking whether the field matches any strings in
-              in the `encodings` argument
+            - note that if the user requests quotes, escapes, or trimwhitespace, these requests
+              will be applied (removed) the raw string BEFORE checking whether the field matches
+              any strings in in the `encodings` argument.
 - `header::Union{Integer,Vector{String}}`
     - The line in the dataset on which to parse the header
         - note that commented lines and blank lines do not contribute to this value
           e.g. if the first 3 lines of your dataset are comments, you'll still need to
           set `header=1` if you are skipping those commented lines.
-    - default: 0
+    - default: `header=0`
         - no header is checked for by default
     - frequently used:
         - `header=1`
 - `skiprows::AbstractVector{Int}`
-    - A Vector or Range (e.g. 1:10) or rows to skip
+    - A `Vector` or `Range` (e.g. `1:10`) or rows to skip
         - note that this is 1-based in reference to the first row AFTER the header.
           If `header=0` or is provided by the user, this will be the first non-empty
-          line in the dataset. Otherwise `skiprows=1:1` will skip the `header+1`nth line
+          line in the dataset. Otherwise `skiprows=1:1` will skip the `header+1`-nth line
           in the file.
     - default: `skiprows=Vector{Int}()`
         - no rows are skipped
@@ -108,7 +108,7 @@ Take an input file or IOStream and user-defined parsing rules and return:
     - default:
         - `types=Dict{Int,DataType}()`
             - column-types will be interpreted from the dataset
-    - built in support for parsing the following:
+    - built-in support for parsing the following:
         - `Int`
         - `Float64`
         - `String`

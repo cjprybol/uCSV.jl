@@ -62,18 +62,18 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
     end
 end
 
-function _readline(splitsource::Vector{T}, comment::Null) where T
-    line = shift!(splitsource)
-    while isempty(line) && !isempty(splitsource)
-        line = shift!(splitsource)
+function _readline(source, comment::Null)
+    line = readline(source)
+    while isempty(line) && !eof(source)
+        line = readline(source)
     end
     return line
 end
 
-function _readline(splitsource::Vector{T}, comment) where T
-    line = shift!(splitsource)
-    while (startswith(line, comment) || isempty(line)) && !isempty(splitsource)
-        line = shift!(splitsource)
+function _readline(source, comment)
+    line = readline(source)
+    while (startswith(line, comment) || isempty(line)) && !eof(source)
+        line = readline(source)
     end
     return line
 end

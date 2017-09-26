@@ -4,16 +4,6 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     currentline = 0
     colnames = Vector{String}()
-    # strip excessive newlines at end of file
-    rawstring = rstrip(Base.read(source, String))
-    # stop here if an empty file
-    isempty(rawstring) && return Any[], Vector{String}()
-    # handle unicode "beginning of message" start to the file
-    if rawstring[1] == '\ufeff'
-        rawstring = string(rawstring[chr2ind(rawstring,2):end])
-    end
-    # call newlines based on linux, mac, or windows line endings
-    splitsource = split(rawstring, r"\r\n?|\n")
     #######################################################################################
     # HEADER
     #######################################################################################
@@ -22,20 +12,20 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         colnames = header
     # parse header from row `header` as specified by the user
     elseif header > 0
-        line = _readline(splitsource, comment)
+        line = _readline(source, comment)
         currentline += 1
         while currentline < header
-            line = _readline(splitsource, comment)
+            line = _readline(source, comment)
             currentline += 1
         end
         if currentline == header
             fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             # e is true if `getfields` determined that we split a line prematurely on a quoted newline
             while e
-                if isempty(splitsource)
+                if eof(source)
                     throw(ErrorException("unexpected EOF"))
                 else
-                    line *= "\n" * shift!(splitsource)
+                    line *= "\n" * readline(source)
                     fields, isquoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
                 end
             end
@@ -51,19 +41,20 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     isquoted = Vector{Bool}(numcols)
     currentline = 0
     linesparsedfortypedetection = 0
-    while !isempty(splitsource) && linesparsedfortypedetection < typedetectrows
-        line = _readline(splitsource, comment)
+    while !eof(source) && linesparsedfortypedetection < typedetectrows
+        line = _readline(source, comment)
         currentline += 1
         if in(currentline, skiprows)
             continue
         end
         linesparsedfortypedetection += 1
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
+        eof(source) && length(fields) == 1 && isempty(fields[1]) && return Any[], colnames
         while e
-            if isempty(splitsource)
+            if eof(source)
                 throw(ErrorException("unexpected EOF"))
             else
-                line *= "\n" *  shift!(splitsource)
+                line *= "\n" *  readline(source)
                 fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             end
         end
@@ -202,18 +193,18 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     #######################################################################################
     # PARSE REMAINDER OF FILE WITH PARSING FUNCTIONS FOR EACH COLUMN
     #######################################################################################
-    while !isempty(splitsource)
-        line = _readline(splitsource, comment)
+    while !eof(source)
+        line = _readline(source, comment)
         currentline += 1
         if in(currentline, skiprows)
             continue
         end
         fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
         while e
-            if isempty(splitsource)
+            if eof(source)
                 throw(ErrorException("unexpected EOF"))
             else
-                line *= "\n" * shift!(splitsource)
+                line *= "\n" * readline(source)
                 fields, quoted, e = getfields(split(line, delim), delim, quotes, escape, trimwhitespace)
             end
         end

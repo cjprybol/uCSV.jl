@@ -640,7 +640,6 @@ df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t'))
 @test typeof.(df.columns) == [Vector{T} for T in
                               [String, String, Int]]
 
-# microsoft line endings
 f = joinpath(files, "FL_insurance_sample.csv.gz")
 e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
 @test e.value.msg == "Error parsing field \"1322376.3\" in row 2, column 4.\nUnable to parse field \"1322376.3\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.\n"
@@ -862,9 +861,9 @@ df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"'))
                               [String, String, String, String, String, String, String, String, String, String, String, String, String, String]]
 
 f = joinpath(files, "indicators.csv.gz")
-df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"'))
-@test names(df) == [Symbol("Arab World"), :ARB, Symbol("Adolescent fertility rate (births per 1,000 women ages 15-19)"), Symbol("SP.ADO.TFRT"), Symbol("1960"), Symbol("133.56090740552298")]
-@test size(df) == (2828228, 6)
+df = DataFrame(uCSV.read(GDS(open(f)), quotes='"'))
+@test names(df) == Symbol[]
+@test size(df) == (2828229, 6)
 @test typeof.(df.columns) == [Vector{T} for T in
                               [String, String, String, String, Int, Float64]]
 
@@ -904,7 +903,7 @@ df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', typedetectrows=2))
 @test typeof.(df.columns) == [Vector{T} for T in
                               [String, Int, Int]]
 
-f = joinpath(files, "pandas_zeros.csv.gz")
+f = joinpath(files, "booleans.csv.gz")
 df = DataFrame(uCSV.read(GDS(open(f)), header=1))
 @test names(df) == [Symbol("0"), Symbol("1"), Symbol("2"), Symbol("3"), Symbol("4"), Symbol("5"), Symbol("6"), Symbol("7"), Symbol("8"), Symbol("9"), Symbol("10"), Symbol("11"), Symbol("12"), Symbol("13"), Symbol("14"), Symbol("15"), Symbol("16"), Symbol("17"), Symbol("18"), Symbol("19"), Symbol("20"), Symbol("21"), Symbol("22"), Symbol("23"), Symbol("24"), Symbol("25"), Symbol("26"), Symbol("27"), Symbol("28"), Symbol("29"), Symbol("30"), Symbol("31"), Symbol("32"), Symbol("33"), Symbol("34"), Symbol("35"), Symbol("36"), Symbol("37"), Symbol("38"), Symbol("39"), Symbol("40"), Symbol("41"), Symbol("42"), Symbol("43"), Symbol("44"), Symbol("45"), Symbol("46"), Symbol("47"), Symbol("48"), Symbol("49")]
 @test size(df) == (100000, 50)
@@ -1043,13 +1042,6 @@ df = DataFrame(uCSV.read(GDS(open(f)), header=1))
                               [Float64, Float64, Float64]]
 
 f = joinpath(files, "test_header_on_row_4.csv.gz")
-df = DataFrame(uCSV.read(GDS(open(f)), header=1))
-@test names(df) == [:col1, :col2, :col3]
-@test size(df) == (3,3)
-@test typeof.(df.columns) == [Vector{T} for T in
-                              [Int, Int, Int]]
-
-f = joinpath(files, "test_mac_line_endings.csv.gz")
 df = DataFrame(uCSV.read(GDS(open(f)), header=1))
 @test names(df) == [:col1, :col2, :col3]
 @test size(df) == (3,3)
