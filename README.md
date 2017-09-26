@@ -39,9 +39,9 @@ Give `uCSV.write` some data and a header (or just one of them), a delimiter (if 
 
 Some keys requirements to acheiving this are:
 
-1. The documentation and examples are thorough enough to help users construct appropriate parsing arguments
-2. The errors and warnings are verbose and informative enough to coach users through successfully updating improperly set arguments
-3. The parser is flexible enough to allow arbitrarily complex parsing rules, enabling advanced users to predifine complex parsing rules to both improve parsing efficiency and capabilities well-beyond the average dataset from your intro to data analysis class.
+1. The documentation and examples must be thorough enough to help users construct appropriate parsing arguments
+2. The errors and warnings must be verbose and informative enough to coach users through successfully updating improperly set arguments
+3. The parser must be flexible enough to allow arbitrarily complex parsing rules, enabling advanced users to predifine complex parsing rules to both improve parsing efficiency and capabilities well-beyond those normally required of a CSV parser.
 
 This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. My long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
 
