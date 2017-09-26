@@ -11,7 +11,7 @@ First, Install the package
 Pkg.clone("https://github.com/cjprybol/uCSV.jl")
 ```
 
-Then head on over to the [Documentation]()!
+Then head on over to the [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://cjprybol.github.io/uCSV.jl/latest)!
 
 ## Why uCSV?
 
