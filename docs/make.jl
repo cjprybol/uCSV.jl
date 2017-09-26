@@ -20,10 +20,8 @@ makedocs(format   = :html,
                                         "man/unsupported.md",
                                         "man/benchmarks.md"]])
 
-deploydocs(
-    repo = "github.com/cjprybol/uCSV.jl.git",
-    target = "build",
-    julia = "0.6",
-    deps = nothing,
-    make = nothing,
-)
+deploydocs(repo = "github.com/cjprybol/uCSV.jl.git",
+           target = "build",
+           julia = "0.6",
+           deps = nothing,
+           make = nothing)
