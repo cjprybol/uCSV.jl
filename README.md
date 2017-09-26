@@ -23,7 +23,7 @@ Some keys requirements to acheiving this are:
 2. The errors and warnings must be verbose and informative enough to coach users through successfully updating improperly set arguments
 3. The parser must be flexible enough to allow arbitrary parsing rules, enabling advanced users to predifine functions that improve efficiency and extend the parsing capabilities well beyond the functionality supported in base Julia
 
-This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the extraneous features and (internal) code complexity to focus on features and overall usability. My long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
+This is primarily an experimental proving ground to explore what user-facing APIs create the most convenient and flexible methods for reading and writing data. uCSV.jl strips away all of the internal code complexity and magic to focus on feature complete and overall usability. My long term goal is to merge the features that work best in this package with the more efficient lower level parsers in CSV.jl and/or TextParse.jl.
 
 ## Contributing
 
@@ -38,5 +38,5 @@ If you find a limitation in capability or performance bottleneck that you can im
 ## Acknowledgements
 
 - [Contributors](https://github.com/cjprybol/uCSV.jl/graphs/contributors)
-- Bug Finders:
+- 🐛 🕵️s:
     - Your name here!
