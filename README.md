@@ -15,7 +15,7 @@ It will give you back the parsed dataset and an empty header.
 
 `uCSV.read` enables you to construct more complex parsing-rules through a compact and flexible API that aims to handle everything from the simple to the nightmarish. 
 
-- [x] Multi-character Unicode String delimiters
+- [x] String delimiters
 - [x] Unlimited field => value encodings for when you have multiple null-strings, boolean encodings, or other special fields
 - [x] Built-in support for Strings, Ints, Float64s, Symbols, Dates, DateTimes, and Booleans with default formatting rules
 - [x] Flexible methods for manually specifying column types, nullability, type- and column-specific parsers, and CategoricalVectors
