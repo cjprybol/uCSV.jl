@@ -1119,11 +1119,11 @@ end
 
 @testset "movie_metadata.csv.gz" begin
     f = joinpath(files, "movie_metadata.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict{String, Any}("" => null), typedetectrows=100, isnullable=Dict(2 => true, 5 => true, 7 => true, 8 => true, 11 => true, 25 => true)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict{String, Any}("" => null), typedetectrows=100, isnullable=Dict(2 => true, 5 => true, 7 => true, 8 => true, 11 => true, 25 => true), types=Dict(9 => Int64, 23 => Int64)))
     @test names(df) == [:color, :director_name, :num_critic_for_reviews, :duration, :director_facebook_likes, :actor_3_facebook_likes, :actor_2_name, :actor_1_facebook_likes, :gross, :genres, :actor_1_name, :movie_title, :num_voted_users, :cast_total_facebook_likes, :actor_3_name, :facenumber_in_poster, :plot_keywords, :movie_imdb_link, :num_user_for_reviews, :language, :country, :content_rating, :budget, :title_year, :actor_2_facebook_likes, :imdb_score, :aspect_ratio, :movie_facebook_likes]
     @test size(df) == (5043, 28)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, String, Union{Null, String}, String, Int, Int, Union{Null, String}, Union{Int, Null}, Union{Null, String}, String, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Int]]
+                                  [Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int64, Null}, String, Union{Null, String}, String, Int, Int, Union{Null, String}, Union{Int, Null}, Union{Null, String}, String, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int64, Null}, Union{Int, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Int]]
 end
 
 @testset "newlines.csv.gz" begin
