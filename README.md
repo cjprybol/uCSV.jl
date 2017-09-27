@@ -16,7 +16,7 @@ Then head on over to the [![](https://img.shields.io/badge/docs-latest-blue.svg)
 
 ## Why uCSV?
 
-**Spend less time pre-formatting your dataset and more time working with it**
+**Spend less time fighting your dataset and more time analyzing it**
 
 Package goals:
 
