@@ -957,11 +957,11 @@ end
 
 @testset "WellIndex_20160811.csv.gz" begin
     f = joinpath(files, "WellIndex_20160811.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', isnullable = Dict(6 => true, 8 => true, 10 => true, 15 => true, 21 => true, 27 => true), encodings=Dict{String,Any}("" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', isnullable = Dict(6 => true, 8 => true, 10 => true, 15 => true, 21 => true, 27 => true), encodings=Dict{String,Any}("" => null), types=Dict(1 => Int64), typedetectrows=100))
     @test names(df) == [:APINo, :FileNo, :CurrentOperator, :CurrentWellName, :LeaseName, :LeaseNumber, :OriginalOperator, :OriginalWellName, :SpudDate, :TD, :CountyName, :Township, :Range, :Section, :QQ, :Footages, :FieldName, :ProducedPools, :OilWaterGasCums, :IPTDateOilWaterGas, :Wellbore, :Latitude, :Longitude, :WellType, :WellStatus, :CTB, :WellStatusDate]
     @test size(df) == (33445, 27)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Int, String, String, String, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Int, Null}, String, String, String, Int, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Float64, Null}, Union{Float64, Null}, String, String, Union{Int, Null}, Union{Null, String}]]
+                                  [Int64, Int, String, String, String, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Int, Null}, String, String, String, Int, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Float64, Null}, Union{Float64, Null}, String, String, Union{Int, Null}, Union{Null, String}]]
 end
 
 @testset "baseball.csv.gz" begin
