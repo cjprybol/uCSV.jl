@@ -42,4 +42,4 @@ If you find a limitation in capability or a performance bottleneck that you can 
 - [Contributors](https://github.com/cjprybol/uCSV.jl/graphs/contributors)
 - 🐛 🕵️s:
     - **Thanks to everyone who has diagnosed a bug or contributed a dataset for testing**
-    - your name here
+    - *your name here?*
