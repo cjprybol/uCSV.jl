@@ -143,7 +143,7 @@ end
     ,,
     """
     e = @test_throws ErrorException uCSV.read(IOBuffer(s), encodings=Dict{String,Any}("" => null))
-    @test e.value.msg == "Error parsing field \"\" in row 2, column 1.\nUnable to push value null to column of type Int64\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 1 via the `types` argument\n  3. manually specify a parser for column 1 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
+    @test e.value.msg == "Error parsing field \"\" in row 2, column 1.\nUnable to push value null to column of type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 1 via the `types` argument\n  3. manually specify a parser for column 1 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
 
     e = @test_throws ArgumentError uCSV.read(IOBuffer(s), header=["col1"])
     @test e.value.msg == "user-provided header String[\"col1\"] has 1 columns, but 3 were detected the in dataset.\n"
