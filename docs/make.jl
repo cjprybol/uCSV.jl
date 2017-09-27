@@ -4,7 +4,6 @@ makedocs(
     root = Pkg.dir("uCSV", "docs"),
     source = "src",
     build = "build",
-    clean = false,
     doctest = true,
     modules = [uCSV],
     format   = :html,
@@ -25,7 +24,6 @@ makedocs(
                                 "man/malformed.md",
                                 "man/url.md",
                                 "man/compressed.md",
-                                "man/categoricals.md",
                                 "man/unsupported.md",
                                 "man/benchmarks.md"]])
 

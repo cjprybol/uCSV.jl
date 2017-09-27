@@ -1,6 +1,6 @@
 # Custom Parsers
 
-You can declare any parser function that takes either a String or an SubString and returns a Julia value.
+You can declare any parser function that takes `T <: AbstractString` and returns a Julia value.
 
 Your custom parsers can be applied to specific columns
 ```julia

@@ -1,12 +1,8 @@
-# Declaring Types
-
-```@contents
-```
+# Declaring Column Element Types
 
 ## Booleans
 
-If booleans are encoded as lower-case `trues` and `falses`, the default parse function for
-booleans can be used. You can request this by setting the `type` argument.
+If booleans are encoded as lower-case `trues` and `falses` in your dataset, the default parse function for booleans can be used. You can request this by setting the `type` argument.
 
 Declaring all columns to be boolean
 ```jldoctest
@@ -222,6 +218,10 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Date))
 ```
 
 ### Dates that require user-specified parsing rules
+
+!!! note
+
+    [Check out the full list of available formatting options for Dates/DateTimes in the Julia docs](https://docs.julialang.org/en/stable/stdlib/dates/#Base.Dates.DateFormat)
 
 Specifying column types in conjunction with declaring a type-specific parser function
 ```jldoctest

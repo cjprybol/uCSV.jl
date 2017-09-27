@@ -16,19 +16,19 @@
          skipmalformed=false,
          trimwhitespace=false)
 
-Take an input file or IOStream and user-defined parsing rules and return:
+Take an input file or IO source and user-defined parsing rules and return:
 1. a `Vector{Any}` containing the parsed columns
 2. a `Vector{String}` containing the header (column names)
 
 # Arguments
 - `fullpath::Union{String,IO}`
-    - the path to a local file, or an open IO stream from which to read data
+    - the path to a local file, or an open IO source from which to read data
 - `delim::Union{Char,String}`
     - whatever the dataset is being split on
     - default: `delim=','`
         - for CSV files
     - frequently used:
-        - `delim='\t'`
+        - `delim='\\t'`
         - `delim=' '`
         - `delim='|'`
     - may contain any valid UTF-8 character or string
@@ -45,7 +45,8 @@ Take an input file or IOStream and user-defined parsing rules and return:
     - frequently used:
         - `escape='"'`
             - double-quotes within quotes, e.g. "firstname ""nickname"" lastname"
-        - `escape='\\'`
+        - `escape='\\\\'`
+            - note that the first backslash is just to escape the second backslash
             - e.g. "firstname \\\"nickname\\\" lastname"
 - `comment::Union{Char,String,Null}`
     - the character or string used for comment lines in your dataset
@@ -56,10 +57,10 @@ Take an input file or IOStream and user-defined parsing rules and return:
     - frequently used:
         - `comment='#'`
         - `comment='!'`
-        - `comment='#!'`
+        - `comment="#!"`
 - `encodings::Dict{String,Any}`
     - A dictionary mapping parsed strings to desired julia values
-        - if your dataset has booleans that are not `"true"` and `"false"` or nulls, you'll need to use this!
+        - if your dataset has booleans that are not represented as `"true"` and `"false"` or missing values that you'd like to read as `null`s, you'll need to use this!
     - default: `encodings=Dict{String, Any}()`
         - by default, the parser does not check for any reserved fields
     - frequently used:
@@ -72,22 +73,22 @@ Take an input file or IOStream and user-defined parsing rules and return:
         - `encodings=Dict{String, Any}("T" => true, "F" => false)`
         - `encodings=Dict{String, Any}("yes" => true, "no" => false)`
         - ... your encodings here ...
-            - can include any number of String => value mappings
-            - note that if the user requests quotes, escapes, or trimwhitespace, these requests
-              will be applied (removed) the raw string BEFORE checking whether the field matches
+            - can include any number of `String` => value mappings
+            - note that if the user requests `quotes`, `escapes`, or `trimwhitespace`, these requests
+              will be applied (removed) the raw string *BEFORE* checking whether the field matches
               any strings in in the `encodings` argument.
 - `header::Union{Integer,Vector{String}}`
     - The line in the dataset on which to parse the header
         - note that commented lines and blank lines do not contribute to this value
           e.g. if the first 3 lines of your dataset are comments, you'll still need to
-          set `header=1` if you are skipping those commented lines.
+          set `header=1` to interpret the first line of parsed data as the header.
     - default: `header=0`
         - no header is checked for by default
     - frequently used:
         - `header=1`
 - `skiprows::AbstractVector{Int}`
     - A `Vector` or `Range` (e.g. `1:10`) or rows to skip
-        - note that this is 1-based in reference to the first row AFTER the header.
+        - note that this is 1-based in reference to the first row *AFTER* the header.
           If `header=0` or is provided by the user, this will be the first non-empty
           line in the dataset. Otherwise `skiprows=1:1` will skip the `header+1`-nth line
           in the file.
@@ -155,7 +156,7 @@ Take an input file or IOStream and user-defined parsing rules and return:
           detected from the data
 - `typeparsers::Dict{Type, Function}`
     - provide custom functions for converting parsed strings to values by column type
-        - note: user must specify column types for this to have the intended effect,
+        - note user must specify column types for this to have the intended effect,
           as the parser uses the default type-parsers for detecting column type.
     - default: `colparsers=Dict{DataType, Function}()`
         - column parsers are determined based on user-specified types and those
@@ -175,7 +176,8 @@ Take an input file or IOStream and user-defined parsing rules and return:
     - default: `skipmalformed=false`
         - malformed lines result in an error
 - `trimwhitespace::Bool=false`
-    - should extra whitespace be removed from fields after quotes and escapes have been removed
+    - specify whether should extra whitespace be removed from the beginning and ends of fields.
+    - Quoted leading and trailing whitespace will not be trimmed.
 """
 
 function read(fullpath::Union{String,IO};

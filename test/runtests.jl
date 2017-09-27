@@ -741,6 +741,12 @@ if Sys.WORD_SIZE == 64
         uCSV.write(outpath, header = string.(names(df)), data = df.columns)
         @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
 
+        uCSV.write(open(outpath, "w"), header = string.(names(df)), data = df.columns)
+        @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
+
+        e = @test_throws ArgumentError uCSV.write(open(outpath), header = string.(names(df)), data = df.columns)
+        @test e.value.msg == "Provided IO is not writable\n"
+
         uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"')
         @test hash(read(open(outpath), String)) == 0x01eced86ce7925c3
 

@@ -42,8 +42,14 @@ A common convention is to have double-quotes within quoted fields to represent t
 ```jldoctest
 julia> using uCSV, DataFrames
 
-julia> names = ["\"Rich \"\"Goose\"\" Gossage\"",
-                "\"Henry \"\"Hammerin' Hank\"\" Aaron\""];
+julia> players = ["\"Rich \"\"Goose\"\" Gossage\"",
+                  "\"Henry \"\"Hammerin' Hank\"\" Aaron\""];
+
+julia> for p in players
+           println(p)
+       end
+"Rich ""Goose"" Gossage"
+"Henry ""Hammerin' Hank"" Aaron"
 
 julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='"'))
 2×1 DataFrames.DataFrame
@@ -60,8 +66,14 @@ Special characters that would normally be parsed as quotes, newlines, or delimit
 ```jldoctest
 julia> using uCSV, DataFrames
 
-julia> names = ["\"Rich \\\"Goose\\\" Gossage\"",
-                "\"Henry \\\"Hammerin' Hank\\\" Aaron\""];
+julia> players = ["\"Rich \\\"Goose\\\" Gossage\"",
+                  "\"Henry \\\"Hammerin' Hank\\\" Aaron\""];
+
+julia> for p in players
+           println(p)
+       end
+"Rich \"Goose\" Gossage"
+"Henry \"Hammerin' Hank\" Aaron"
 
 julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='\\'))
 2×1 DataFrames.DataFrame

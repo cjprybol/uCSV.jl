@@ -1,4 +1,8 @@
-# Reading Columns as CategoricalArrays
+# Declaring Column Vector Types
+
+```@contents
+```
+## CategoricalArrays
 
 Declaring all columns should be parsed as CategoricalArrays
 ```jldoctest
@@ -79,3 +83,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a"
  String
 
 ```
+
+## Other Vector Types
+
+### TODO

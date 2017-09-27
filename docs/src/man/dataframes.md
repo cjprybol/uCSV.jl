@@ -1,7 +1,7 @@
 # Reading into DataFrames
 
 uCSV implements a convenience constructor for DataFrames that takes the output of `uCSV.read`
-(a Tuple{Vector::Any, Vector{String}}) and converts it to a DataFrame.
+(a `Tuple{Vector::Any, Vector{String}}`) and converts it to a `DataFrame`.
 
 !!! note
 

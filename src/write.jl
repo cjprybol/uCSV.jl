@@ -6,37 +6,44 @@
                    quotes=null,
                    quotetypes=AbstractString)
 
-write a dataset to disk
+write a dataset
 
 # Arguments
-- `fullpath::String`
-    - the path on disk where you want to write the file. writting to streams is not
-      currently supported, but if you're interested in this feature please file an issue
-      or open a pull request!
+- `fullpath::Union{String, IO}`
+    - the path on disk or IO where you want to write to.
 - `header::Union{Vector{String}, Null}`
     - the column names for the data
         - default: `header=null`
-            - no header is written to disk
+            - no header is written
 - `data::Union{Vector{<:Any}, Null}`
     - the dataset to write to disk
         - default: `data=null`
-            - no data is written to disk
+            - no data is written
 - `delim::Union{Char, String}`
     - the delimiter to seperate fields by
-        - default: `delim=','`
-            - comma-seperated values
+    - default: `delim=','`
+        - for CSV files
+    - frequently used:
+        - `delim='\\t'`
+        - `delim=' '`
+        - `delim='|'`
 - `quotes::Union{Char, Null}`
     - the quoting character to use when writing fields
         - default: `quotes=null`
             - fields are not quoted by default, and fields are written using julia's
               default string-printing mechanisms
 - `quotetypes::Type`
-    - when quoting fields, quote only columns that are <: of `quotetypes`
+    - when quoting fields, quote only columns where `coltype <: quotetypes`
+        -
         - default: `quotetypes=AbsractString`
-            - only the header and fields <: AbsractString will be quoted
+            - only the header and fields where `coltype <: AbsractString` will be quoted
+            - note that columns of `Union{<:coltype, Null}` will also be quoted, for cases where columns that you desire to be quoted also have missing values.
+        - frequently used:
+            - `quotetypes=Any`
+                - quote every field in the dataset
 """
 
-function write(fullpath::String;
+function write(fullpath::Union{String, IO};
                header::Union{Vector{String}, Null}=null,
                data::Union{Vector{<:Any}, Null}=null,
                delim::Union{Char, String}=',',
@@ -50,7 +57,17 @@ function write(fullpath::String;
             @assert length(header) == length(data)
         end
     end
-    f = open(fullpath, "w")
+    if isa(fullpath, IO)
+        if iswritable(fullpath)
+            f = fullpath
+        else
+            throw(ArgumentError("""
+                                Provided IO is not writable
+                                """))
+        end
+    else
+        f = open(fullpath, "w")
+    end
     if !isnull(header)
         if !isnull(quotes)
             for i in eachindex(header)
@@ -65,7 +82,7 @@ function write(fullpath::String;
         for row in 1:length(data[1])
             rowvalues = [string(data[col][row]) for col in 1:numcols]
             if !isnull(quotes)
-                for i in find(e -> e <: quotetypes, eltypes)
+                for i in find(e -> e <: quotetypes || (e != Null && e <: Union{quotetypes, Null}), eltypes)
                     rowvalues[i] = string(quotes, rowvalues[i], quotes)
                 end
             end

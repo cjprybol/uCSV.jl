@@ -2,7 +2,7 @@
 
 ## Dataset isn't UTF-8
 
-This package relies heavily on the String capabilities of the base Julia language and implements very little custom text processing. If you see garbled characters output by `uCSV.read`
+This package relies heavily on the String capabilities of the base Julia language and implements very little custom text processing. If you see garbled characters output by `uCSV.read`, there's a good chance that your dataset is not encoded in UTF-8 and needs to be converted.
 
 ### Recommended Solutions
 
@@ -29,7 +29,7 @@ tr
 cat my_file.macOS9.csv | tr '\r' '\n' > my_file.unix.csv
 ```
 
-This can also be done with vi, sed, perl, awk, emacs, and many other command line text editing tools. If you'd like to see more examples, please open a PR with your contribution here!
+This can also be done with vi, sed, perl, awk, emacs, and many other command line text editing tools. If you'd like to see more examples here and have one to contribute, please open a PR!
 
 **Julia**
 

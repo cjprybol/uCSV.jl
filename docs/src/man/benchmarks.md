@@ -1,8 +1,10 @@
 # Benchmarks
 
+Note these are not exhaustive, but I've done by best to cover various common formats and to ensure that all of the readers output the data using standard Julia Vectors and Types for accurate comparison. This does not necessarily reflect the strengths or weaknesses of the other packages relative to uCSV.
+
 ## Read
 
-## Setup
+### Setup
 
 All data will be read into equivalent DataFrames
 ```julia

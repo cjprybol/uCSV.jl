@@ -13,10 +13,11 @@ uCSV.write
 Pages = [
     "man/defaults.md",
     "man/headers.md",
-    "man/delimiters.md",
     "man/dataframes.md",
+    "man/delimiters.md",
     "man/missingdata.md",
-    "man/declaring-types.md",
+    "man/declaring-column-element-types.md",
+    "man/declaring-column-vector-types.md",
     "man/international.md",
     "man/customparsers.md",
     "man/quotes-escapes.md",
