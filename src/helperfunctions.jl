@@ -26,7 +26,7 @@ function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{Stri
     if all(k -> in(k, colnames), keys(arg))
         return Dict(findfirst(colnames, k) => v for (k,v) in arg)
     else
-        k = findfirst(filter(k -> in(k, colnames), keys(arg)))
+        k = first(filter(k -> !in(k, colnames), collect(keys(arg))))
         throw(ArgumentError("""
                             user-provided column name $k does not match any parsed or user-provided column names.
                             """))

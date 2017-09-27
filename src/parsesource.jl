@@ -71,7 +71,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         isquoted .|= quoted
     end
 
-    if currentline == 0
+    if currentline == 0 || eof(source) && (size(rawstrings, 2) == 0)
         return Any[], colnames
     elseif linesparsedfortypedetection < typedetectrows
         rawstrings = rawstrings[1:linesparsedfortypedetection, :]

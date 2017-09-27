@@ -31,6 +31,18 @@ end
          3.0 3.0 3.0]
 end
 
+@testset "DataFrame" begin
+    s =
+    """
+    header
+    data
+    """
+    @test DataFrame(uCSV.read(IOBuffer(s), header=1)) == DataFrame([["data"]], [:header])
+    @test DataFrame(uCSV.read(IOBuffer(s), header=1, skiprows=1:1)) == DataFrame([[]], [:header])
+    @test DataFrame(uCSV.read(IOBuffer(s), skiprows=1:1)) == DataFrame([["data"]])
+    @test DataFrame(uCSV.read(IOBuffer(s), skiprows=1:2)) == DataFrame()
+end
+
 @testset "Mixed Type Matrix" begin
     s =
     """
@@ -89,6 +101,41 @@ end
     @test uCSV.read(IOBuffer(s), escape='\\', trimwhitespace=false)[1][1][1] == "  s s  "
     @test uCSV.read(IOBuffer(s), trimwhitespace=true)[1][1][1] == "s s\\"
     @test uCSV.read(IOBuffer(s))[1][1][1] == s
+
+    s =
+    """
+     " s s\\ " ,"other text"
+    """
+    @test uCSV.read(IOBuffer(s), quotes='"', escape='\\', trimwhitespace=true)[1][1][1] == " s s "
+    @test uCSV.read(IOBuffer(s), quotes='"', escape='\\', trimwhitespace=false)[1][1][1] == "  s s  "
+end
+
+@testset "errors" begin
+    s =
+    """
+    1,2,3
+    """
+    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), types=Dict("col2" => Float64))
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. iscategorical\n  4. colparsers\nwas provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
+
+    s =
+    """
+    c1,c2,c3
+    1,2,3
+    """
+    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), header=1, types=Dict("col2" => Float64))
+    @test e.value.msg == "user-provided column name col2 does not match any parsed or user-provided column names.\n"
+
+    s =
+    """
+    1,2,3
+    ,,
+    """
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), encodings=Dict{String,Any}("" => null))
+    @test e.value.msg == "Error parsing field \"\" in row 2, column 1.\nUnable to push value null to column of type Int64\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 1 via the `types` argument\n  3. manually specify a parser for column 1 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
+
+    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), header=["col1"])
+    @test e.value.msg == "user-provided header String[\"col1\"] has 1 columns, but 3 were detected the in dataset.\n"
 end
 
 @testset "Ford Fiesta (Ford examples from Wikipedia page)" begin
@@ -600,7 +647,18 @@ end
     @test header == ["a", "b", "c"]
 end
 
-@testset "Malformed Row Errors" begin
+@testset "Malformed Rows" begin
+    s = "col1,col2,\"col3\n\""
+    data, header = uCSV.read(IOBuffer(s), quotes='"')
+    @test data == Any[["col1"],
+                      ["col2"],
+                      ["col3\n"]]
+    @test header == Vector{String}()
+
+    data, header = uCSV.read(IOBuffer(s), quotes='"', header=1)
+    @test data == Any[]
+    @test header == ["col1", "col2", "col3\n"]
+
     s =
     """
     A;B;C
