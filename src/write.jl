@@ -3,7 +3,8 @@
                    header=null,
                    data=null,
                    delim=',',
-                   quotes=null)
+                   quotes=null,
+                   quotetypes=AbstractString)
 
 write a dataset to disk
 
@@ -29,13 +30,18 @@ write a dataset to disk
         - default: `quotes=null`
             - fields are not quoted by default, and fields are written using julia's
               default string-printing mechanisms
+- `quotetypes::Type`
+    - when quoting fields, quote only columns that are <: of `quotetypes`
+        - default: `quotetypes=AbsractString`
+            - only the header and fields <: AbsractString will be quoted
 """
 
 function write(fullpath::String;
                header::Union{Vector{String}, Null}=null,
                data::Union{Vector{<:Any}, Null}=null,
                delim::Union{Char, String}=',',
-               quotes::Union{Char, Null}=null)
+               quotes::Union{Char, Null}=null,
+               quotetypes::Type=AbstractString)
     if isnull(header) && isnull(data)
         throw(ArgumentError("no header or data provided"))
     elseif !isnull(data)
@@ -59,7 +65,7 @@ function write(fullpath::String;
         for row in 1:length(data[1])
             rowvalues = [string(data[col][row]) for col in 1:numcols]
             if !isnull(quotes)
-                for i in find(e -> e == String, eltypes)
+                for i in find(e -> e <: quotetypes, eltypes)
                     rowvalues[i] = string(quotes, rowvalues[i], quotes)
                 end
             end

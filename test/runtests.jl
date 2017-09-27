@@ -79,7 +79,7 @@ end
     @test header == ["c1", "c2", "c3"]
 end
 
-@testset "trimwhitespace" begin
+@testset "checkfield & trimwhitespace" begin
     s =
     """
     19 97, 19 97 ,1997
@@ -108,6 +108,17 @@ end
     """
     @test uCSV.read(IOBuffer(s), quotes='"', escape='\\', trimwhitespace=true)[1][1][1] == " s s "
     @test uCSV.read(IOBuffer(s), quotes='"', escape='\\', trimwhitespace=false)[1][1][1] == "  s s  "
+
+    s =
+    """
+    \\"ss\\"
+    """
+    @test uCSV.read(IOBuffer(s), quotes='"', escape='\\')[1][1][1] == "\"ss\""
+    s =
+    """
+    text
+    """
+    @test uCSV.read(IOBuffer(s), escape='\\', trimwhitespace=true)[1][1][1] == "text"
 end
 
 @testset "errors" begin
@@ -659,6 +670,27 @@ end
     @test data == Any[]
     @test header == ["col1", "col2", "col3\n"]
 
+    s = "col1,col2,\"col3\n\"\ncol1,col2,\"col3\n\"\ncol1,col2,\"col3\n\""
+    data, header = uCSV.read(IOBuffer(s), quotes='"')
+    @test data == Any[["col1", "col1", "col1"],
+                      ["col2", "col2", "col2"],
+                      ["col3\n", "col3\n", "col3\n"]]
+    @test header == Vector{String}()
+
+    s = "col1,col2,\"col3\n\"\ncol1,col2,\"col3\n\"\ncol1,col2,\"col3\n\""
+    data, header = uCSV.read(IOBuffer(s), quotes='"', typedetectrows=2)
+    @test data == Any[["col1", "col1", "col1"],
+                      ["col2", "col2", "col2"],
+                      ["col3\n", "col3\n", "col3\n"]]
+    @test header == Vector{String}()
+
+    s = "col1,col2,\"col3\n\"\ncol1,col2,\"col3\n\"\ncol1,col2,\"col3\n\""
+    data, header = uCSV.read(IOBuffer(s), quotes='"', typedetectrows=3)
+    @test data == Any[["col1", "col1", "col1"],
+                      ["col2", "col2", "col2"],
+                      ["col3\n", "col3\n", "col3\n"]]
+    @test header == Vector{String}()
+
     s =
     """
     A;B;C
@@ -711,6 +743,9 @@ if Sys.WORD_SIZE == 64
 
         uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"')
         @test hash(read(open(outpath), String)) == 0x01eced86ce7925c3
+
+        uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"', quotetypes=Any)
+        @test hash(read(open(outpath), String)) == 0x5548866b058bb193
 
         uCSV.write(outpath, header = string.(names(df)), data = df.columns, quotes='"', delim="≤≥")
         @test hash(read(open(outpath), String)) == 0x2cd049ba9cf45178
@@ -800,7 +835,8 @@ end
 
 @testset "Gaz_zcta_national.txt.gz" begin
     f = joinpath(files, "Gaz_zcta_national.txt.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t', trimwhitespace=true))
+    # manually specify Int64 to pass tests on windows32 bit
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t', trimwhitespace=true, types=Dict(4 => Int64)))
     @test names(df) == [:GEOID, :POP10, :HU10, :ALAND, :AWATER, :ALAND_SQMI, :AWATER_SQMI, :INTPTLAT, :INTPTLONG]
     @test size(df) == (33120, 9)
     @test typeof.(df.columns) == [Vector{T} for T in
