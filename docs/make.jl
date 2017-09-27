@@ -1,11 +1,16 @@
 using Documenter, uCSV
 
 makedocs(
-    modules = [uCSV],
-    format   = :html,
+    root = Pkg.dir("uCSV", "docs"),
+    source = "src",
+    build = "build",
     clean = false,
     doctest = true,
+    modules = [uCSV],
+    format   = :html,
     sitename = "uCSV.jl",
+    checkdocs = :all,
+    debug = true,
     pages = Any["Home" => "index.md",
                 "Manual" => Any["man/defaults.md",
                                 "man/headers.md",
