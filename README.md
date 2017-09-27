@@ -28,9 +28,9 @@ This is primarily an experimental proving ground to explore what user-facing API
 
 ## Contributing
 
-If you find a file you cannot parse after reading through the documentation, please file an issue!
+If you find a file you cannot parse after reading through the documentation and would like help, please file an issue!
 
-If you find a limitation in capability or performance bottleneck that you can improve upon, please open a PR!
+If you find a limitation in capability or a performance bottleneck that you can improve upon, or would like to improve upon the documentation, please open a PR!
 
 ## License
 
