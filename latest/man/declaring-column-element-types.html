@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Declaring Column Element Types · uCSV.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>uCSV.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" action="../search.html"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../index.html">Home</a></li><li><span class="toctext">Manual</span><ul><li><a class="toctext" href="defaults.html">Getting Started</a></li><li><a class="toctext" href="headers.html">Headers</a></li><li><a class="toctext" href="dataframes.html">Reading into DataFrames</a></li><li><a class="toctext" href="delimiters.html">Delimiters</a></li><li><a class="toctext" href="missingdata.html">Missing Data</a></li><li class="current"><a class="toctext" href="declaring-column-element-types.html">Declaring Column Element Types</a><ul class="internal"><li><a class="toctext" href="#Booleans-1">Booleans</a></li><li><a class="toctext" href="#Symbols-1">Symbols</a></li><li><a class="toctext" href="#Dates-1">Dates</a></li><li><a class="toctext" href="#DateTimes-1">DateTimes</a></li></ul></li><li><a class="toctext" href="declaring-column-vector-types.html">Declaring Column Vector Types</a></li><li><a class="toctext" href="international.html">International Representations for Numbers</a></li><li><a class="toctext" href="customparsers.html">Custom Parsers</a></li><li><a class="toctext" href="quotes-escapes.html">Quotes and Escapes</a></li><li><a class="toctext" href="comments-skiplines.html">Skipping Comments and Rows</a></li><li><a class="toctext" href="malformed.html">Malformed Data</a></li><li><a class="toctext" href="url.html">Reading data from URLs</a></li><li><a class="toctext" href="compressed.html">Reading Compressed Datasets</a></li><li><a class="toctext" href="unsupported.html">Common formatting issues</a></li><li><a class="toctext" href="benchmarks.html">Benchmarks</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Manual</li><li><a href="declaring-column-element-types.html">Declaring Column Element Types</a></li></ul><a class="edit-page" href="https://github.com/cjprybol/uCSV.jl/tree/b90b2d14226017c2e964c45a738b7b55084737a2/docs/src/man/declaring-column-element-types.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Declaring Column Element Types</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Declaring-Column-Element-Types-1" href="#Declaring-Column-Element-Types-1">Declaring Column Element Types</a></h1><h2><a class="nav-anchor" id="Booleans-1" href="#Booleans-1">Booleans</a></h2><p>If booleans are encoded as lower-case <code>trues</code> and <code>falses</code> in your dataset, the default parse function for booleans can be used. You can request this by setting the <code>type</code> argument.</p><p>Declaring all columns to be boolean</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       true
+       false
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), types=Bool))
+2×1 DataFrames.DataFrame
+│ Row │ x1    │
+├─────┼───────┤
+│ 1   │ true  │
+│ 2   │ false │
+</code></pre><p>Declaring the type of each column with a vector</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       true
+       false
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), types=[Bool]))
+2×1 DataFrames.DataFrame
+│ Row │ x1    │
+├─────┼───────┤
+│ 1   │ true  │
+│ 2   │ false │
+</code></pre><p>Declaring the type of specific columns with a dictionary</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       true
+       false
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 =&gt; Bool)))
+2×1 DataFrames.DataFrame
+│ Row │ x1    │
+├─────┼───────┤
+│ 1   │ true  │
+│ 2   │ false │
+</code></pre><p>Specifying the text-encodings for your boolean values</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       T
+       F
+       True
+       False
+       0
+       1
+       yes
+       no
+       y
+       n
+       YES
+       NO
+       Yes
+       No
+       &quot;&quot;&quot;;
+
+julia&gt; trues = Dict{String, Any}(s =&gt; true for s in [&quot;T&quot;, &quot;True&quot;, &quot;1&quot;, &quot;yes&quot;, &quot;y&quot;, &quot;YES&quot;, &quot;Yes&quot;])
+Dict{String,Any} with 7 entries:
+  &quot;YES&quot;  =&gt; true
+  &quot;True&quot; =&gt; true
+  &quot;1&quot;    =&gt; true
+  &quot;yes&quot;  =&gt; true
+  &quot;T&quot;    =&gt; true
+  &quot;Yes&quot;  =&gt; true
+  &quot;y&quot;    =&gt; true
+
+julia&gt; falses = Dict{String, Any}(s =&gt; false for s in [&quot;F&quot;, &quot;False&quot;, &quot;0&quot;, &quot;no&quot;, &quot;n&quot;, &quot;NO&quot;, &quot;No&quot;])
+Dict{String,Any} with 7 entries:
+  &quot;NO&quot;    =&gt; false
+  &quot;No&quot;    =&gt; false
+  &quot;False&quot; =&gt; false
+  &quot;0&quot;     =&gt; false
+  &quot;no&quot;    =&gt; false
+  &quot;F&quot;     =&gt; false
+  &quot;n&quot;     =&gt; false
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), encodings=merge(trues, falses)))
+14×1 DataFrames.DataFrame
+│ Row │ x1    │
+├─────┼───────┤
+│ 1   │ true  │
+│ 2   │ false │
+│ 3   │ true  │
+│ 4   │ false │
+│ 5   │ false │
+│ 6   │ true  │
+│ 7   │ true  │
+│ 8   │ false │
+│ 9   │ true  │
+│ 10  │ false │
+│ 11  │ true  │
+│ 12  │ false │
+│ 13  │ true  │
+│ 14  │ false │
+</code></pre><h2><a class="nav-anchor" id="Symbols-1" href="#Symbols-1">Symbols</a></h2><p>Declaring all columns as Symbol</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       x1
+       y7
+       µ∆
+       &quot;&quot;&quot;;
+
+julia&gt; df = DataFrame(uCSV.read(IOBuffer(s), types=Symbol))
+3×1 DataFrames.DataFrame
+│ Row │ x1 │
+├─────┼────┤
+│ 1   │ x1 │
+│ 2   │ y7 │
+│ 3   │ µ∆ │
+
+julia&gt; eltype.(df.columns) == [Symbol]
+true
+</code></pre><p>Declaring the type of each column</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       x1
+       y7
+       µ∆
+       &quot;&quot;&quot;;
+
+julia&gt; df = DataFrame(uCSV.read(IOBuffer(s), types=[Symbol]))
+3×1 DataFrames.DataFrame
+│ Row │ x1 │
+├─────┼────┤
+│ 1   │ x1 │
+│ 2   │ y7 │
+│ 3   │ µ∆ │
+
+julia&gt; eltype.(df.columns) == [Symbol]
+true
+</code></pre><p>Declaring the type of specific columns</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       x1
+       y7
+       µ∆
+       &quot;&quot;&quot;;
+
+julia&gt; df = DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 =&gt; Symbol)))
+3×1 DataFrames.DataFrame
+│ Row │ x1 │
+├─────┼────┤
+│ 1   │ x1 │
+│ 2   │ y7 │
+│ 3   │ µ∆ │
+
+julia&gt; eltype.(df.columns) == [Symbol]
+true
+</code></pre><h2><a class="nav-anchor" id="Dates-1" href="#Dates-1">Dates</a></h2><p>Dates that are parseable with the default formatting</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       2013-01-01
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), types=Date))
+1×1 DataFrames.DataFrame
+│ Row │ x1         │
+├─────┼────────────┤
+│ 1   │ 2013-01-01 │
+</code></pre><h3><a class="nav-anchor" id="Dates-that-require-user-specified-parsing-rules-1" href="#Dates-that-require-user-specified-parsing-rules-1">Dates that require user-specified parsing rules</a></h3><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p><a href="https://docs.julialang.org/en/stable/stdlib/dates/#Base.Dates.DateFormat">Check out the full list of available formatting options for Dates/DateTimes in the Julia docs</a></p></div></div><p>Specifying column types in conjunction with declaring a type-specific parser function</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       12/24/36
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), types=Date, typeparsers=Dict(Date =&gt; x -&gt; Date(x, &quot;m/d/y&quot;))))
+1×1 DataFrames.DataFrame
+│ Row │ x1         │
+├─────┼────────────┤
+│ 1   │ 0036-12-24 │
+</code></pre><p>Specifying a column-specific parser function</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       12/24/36
+       &quot;&quot;&quot;;
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 =&gt; x -&gt; Date(x, &quot;m/d/y&quot;))))
+1×1 DataFrames.DataFrame
+│ Row │ x1         │
+├─────┼────────────┤
+│ 1   │ 0036-12-24 │
+</code></pre><h2><a class="nav-anchor" id="DateTimes-1" href="#DateTimes-1">DateTimes</a></h2><p>The same techniques demonstrated for other types also apply here. To make it interesting, let&#39;s try handling multiple encodings at once.</p><pre><code class="language-julia-repl">julia&gt; using uCSV, DataFrames
+
+julia&gt; s =
+       &quot;&quot;&quot;
+       2015-01-01 00:00:00
+       2015-01-02 00:00:01
+       2015-01-03 00:12:00.001
+       &quot;&quot;&quot;;
+
+julia&gt; function datetimeparser(x)
+           if in(&#39;.&#39;, x)
+              return DateTime(x, &quot;y-m-d H:M:S.s&quot;)
+          else
+              return DateTime(x, &quot;y-m-d H:M:S&quot;)
+          end
+       end
+datetimeparser (generic function with 1 method)
+
+julia&gt; DataFrame(uCSV.read(IOBuffer(s), colparsers=(x -&gt; datetimeparser(x))))
+3×1 DataFrames.DataFrame
+│ Row │ x1                      │
+├─────┼─────────────────────────┤
+│ 1   │ 2015-01-01T00:00:00     │
+│ 2   │ 2015-01-02T00:00:01     │
+│ 3   │ 2015-01-03T00:12:00.001 │
+</code></pre><footer><hr/><a class="previous" href="missingdata.html"><span class="direction">Previous</span><span class="title">Missing Data</span></a><a class="next" href="declaring-column-vector-types.html"><span class="direction">Next</span><span class="title">Declaring Column Vector Types</span></a></footer></article></body></html>
