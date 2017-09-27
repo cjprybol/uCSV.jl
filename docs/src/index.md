@@ -25,7 +25,6 @@ Pages = [
     "man/malformed.md",
     "man/url.md",
     "man/compressed.md",
-    "man/categoricals.md",
     "man/unsupported.md",
     "man/benchmarks.md"
 ]
