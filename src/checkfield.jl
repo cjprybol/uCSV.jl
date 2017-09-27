@@ -37,7 +37,11 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
             end
         end
     end
-    return inquotes, escaped, toskip, isquoted
+    if !isempty(toskip)
+        field[[i for i in eachindex(field) if !in(i, toskip)]], inquotes, escaped, isquoted
+    else
+        return field, inquotes, escaped, isquoted
+    end
 end
 
 function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
@@ -66,7 +70,11 @@ function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
             end
         end
     end
-    return inquotes, escaped, toskip, isquoted
+    if !isempty(toskip)
+        return field[[i for i in eachindex(field) if !in(i, toskip)]], inquotes, escaped, isquoted
+    else
+        return field, inquotes, escaped, isquoted
+    end
 end
 
 function checkfield(field, quotes::Null, escape::Char, trimwhitespace::Bool)
@@ -81,13 +89,23 @@ function checkfield(field, quotes::Null, escape::Char, trimwhitespace::Bool)
         elseif c == escape
             escaped = true
             push!(toskip, i)
-        elseif trimwhitespace && ismatch(r"\s", string(c))
-            push!(toskip, i)
         else
             continue
         end
     end
-    return inquotes, escaped, toskip, isquoted
+    if !isempty(toskip)
+        if trimwhitespace
+            return strip(field[[i for i in eachindex(field) if !in(i, toskip)]]), inquotes, escaped, isquoted
+        else
+            field[[i for i in eachindex(field) if !in(i, toskip)]], inquotes, escaped, isquoted
+        end
+    else
+        if trimwhitespace
+            return strip(field), inquotes, escaped, isquoted
+        else
+            return field, inquotes, escaped, isquoted
+        end
+    end
 end
 
 function checkfield(field, quotes::Null, escape::Null, trimwhitespace::Bool)
@@ -96,14 +114,8 @@ function checkfield(field, quotes::Null, escape::Null, trimwhitespace::Bool)
     escaped = false
     toskip = Vector{Int}(0)
     if trimwhitespace
-        for i in eachindex(field)
-            c = field[i]
-            if ismatch(r"\s", string(c))
-                push!(toskip, i)
-            else
-               continue
-            end
-        end
+        return strip(field), inquotes, escaped, isquoted
+    else
+        return field, inquotes, escaped, isquoted
     end
-    return inquotes, escaped, toskip, isquoted
 end

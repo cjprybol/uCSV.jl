@@ -67,6 +67,30 @@ end
     @test header == ["c1", "c2", "c3"]
 end
 
+@testset "trimwhitespace" begin
+    s =
+    """
+    19 97, 19 97 ,1997
+    """
+    data, header = uCSV.read(IOBuffer(s))
+    @test data == Any[["19 97"],
+                      [" 19 97 "],
+                      [1997]]
+    @test header == Vector{String}()
+
+    data, header = uCSV.read(IOBuffer(s), trimwhitespace=true)
+    @test data == Any[["19 97"],
+                      ["19 97"],
+                      [1997]]
+    @test header == Vector{String}()
+
+    s = "  s s\\  "
+    @test uCSV.read(IOBuffer(s), escape='\\', trimwhitespace=true)[1][1][1] == "s s"
+    @test uCSV.read(IOBuffer(s), escape='\\', trimwhitespace=false)[1][1][1] == "  s s  "
+    @test uCSV.read(IOBuffer(s), trimwhitespace=true)[1][1][1] == "s s\\"
+    @test uCSV.read(IOBuffer(s))[1][1][1] == s
+end
+
 @testset "Ford Fiesta (Ford examples from Wikipedia page)" begin
     s =
     """

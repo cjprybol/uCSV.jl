@@ -1,7 +1,7 @@
 function getfields(fields, delim, quotes, escape, trimwhitespace)
     isquoted = falses(length(fields))
     for (fi, field) in enumerate(fields)
-        inquotes, escaped, toskip, quoted = checkfield(field, quotes, escape, trimwhitespace)
+        _field, inquotes, escaped, quoted = checkfield(field, quotes, escape, trimwhitespace)
         if inquotes || escaped
             if fi < length(fields)
                 fields[fi] = string(fields[fi], delim, fields[fi+1])
@@ -11,8 +11,8 @@ function getfields(fields, delim, quotes, escape, trimwhitespace)
                 return fields, isquoted, true
             end
         end
-        if !isempty(toskip)
-            fields[fi] = field[[i for i in eachindex(field) if !in(i, toskip)]]
+        if _field != field
+            fields[fi] = _field
         end
         isquoted[fi] = quoted
     end

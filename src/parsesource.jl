@@ -100,7 +100,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     index2nullable::Dict{Int, Bool} = getintdict(isnullable, numcols, colnames)
     index2categorical::Dict{Int, Bool} = getintdict(iscategorical, numcols, colnames)
     index2parser::Dict{Int, Function} = getintdict(colparsers, numcols, colnames)
-    type2parser::Dict{DataType, Function} = Dict(Int => x -> parse(Int, x),
+    type2parser::Dict{DataType, Function} = Dict(Int => x -> parse(Int64, x),
                                                  Float64 => x -> parse(Float64, x),
                                                  String => x -> string(x),
                                                  Date => x -> parse(Date, x),
@@ -129,7 +129,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             elseif haskey(index2type, col)
                 vals[row, col] = type2parser[Nulls.T(index2type[col])](rawstrings[row, col])
             else
-                tryint = tryparse(Int, rawstrings[row, col])
+                tryint = tryparse(Int64, rawstrings[row, col])
                 if !isnull(tryint)
                     vals[row, col] = get(tryint)
                     continue
