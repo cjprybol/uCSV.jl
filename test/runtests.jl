@@ -836,7 +836,7 @@ end
 @testset "Gaz_zcta_national.txt.gz" begin
     f = joinpath(files, "Gaz_zcta_national.txt.gz")
     # manually specify Int64 to pass tests on windows32 bit
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t', trimwhitespace=true, types=Dict(4 => Int64)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t', trimwhitespace=true, types=Dict(4 => Int64, 5 => Int64)))
     @test names(df) == [:GEOID, :POP10, :HU10, :ALAND, :AWATER, :ALAND_SQMI, :AWATER_SQMI, :INTPTLAT, :INTPTLONG]
     @test size(df) == (33120, 9)
     @test typeof.(df.columns) == [Vector{T} for T in
