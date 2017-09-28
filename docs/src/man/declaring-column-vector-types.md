@@ -2,11 +2,11 @@
 
 ```@contents
 ```
-## CategoricalArrays
+## CategoricalArrays & other column types
 
 Declaring all columns should be parsed as CategoricalArrays
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, CategoricalArrays
 
 julia> s =
        """
@@ -16,7 +16,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=true)).columns)
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=CategoricalVector)).columns)
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalValue{String,UInt32}
  CategoricalArrays.CategoricalValue{String,UInt32}
@@ -26,7 +26,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=true)).columns)
 
 Declaring whether each column should be a CategoricalArray or not
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, CategoricalArrays
 
 julia> s =
        """
@@ -36,7 +36,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=[true, true, true])).columns)
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector, 3))).columns)
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalValue{String,UInt32}
  CategoricalArrays.CategoricalValue{String,UInt32}
@@ -46,7 +46,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=[true, true, true]
 
 Declaring whether specific columns should be CategoricalArrays by index
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, CategoricalArrays
 
 julia> s =
        """
@@ -56,7 +56,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=Dict(3 => true))).columns)
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=Dict(3 => CategoricalVector))).columns)
 3-element Array{DataType,1}:
  String
  String
@@ -66,7 +66,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), iscategorical=Dict(3 => true))).
 
 Declaring whether specific columns should be CategoricalArrays by column name
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, CategoricalArrays
 
 julia> s =
        """
@@ -76,14 +76,10 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a" => true))).columns)
+julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, coltypes=Dict("a" => CategoricalVector))).columns)
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalValue{String,UInt32}
  String
  String
 
 ```
-
-## Other Vector Types
-
-### TODO

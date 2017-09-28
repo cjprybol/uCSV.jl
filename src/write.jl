@@ -34,7 +34,6 @@ write a dataset
               default string-printing mechanisms
 - `quotetypes::Type`
     - when quoting fields, quote only columns where `coltype <: quotetypes`
-        -
         - default: `quotetypes=AbsractString`
             - only the header and fields where `coltype <: AbsractString` will be quoted
             - note that columns of `Union{<:coltype, Null}` will also be quoted, for cases where columns that you desire to be quoted also have missing values.
@@ -90,4 +89,45 @@ function write(fullpath::Union{String, IO};
         end
     end
     close(f)
+end
+
+"""
+    function write(fullpath,
+                   df;
+                   delim=',',
+                   quotes=null,
+                   quotetypes=AbstractString)
+
+write a DataFrame to disk
+
+# Arguments
+- `fullpath::Union{String, IO}`
+    - the path on disk or IO where you want to write to.
+- `df::DataFrame`
+    - the DataFrame to be written to disk
+- `delim::Union{Char, String}`
+    - the delimiter to seperate fields by
+    - default: `delim=','`
+        - for CSV files
+    - frequently used:
+        - `delim='\\t'`
+        - `delim=' '`
+        - `delim='|'`
+- `quotes::Union{Char, Null}`
+    - the quoting character to use when writing fields
+        - default: `quotes=null`
+            - fields are not quoted by default, and fields are written using julia's
+              default string-printing mechanisms
+- `quotetypes::Type`
+    - when quoting fields, quote only columns where `coltype <: quotetypes`
+        - default: `quotetypes=AbsractString`
+            - only the header and fields where `coltype <: AbsractString` will be quoted
+            - note that columns of `Union{<:coltype, Null}` will also be quoted, for cases where columns that you desire to be quoted also have missing values.
+        - frequently used:
+            - `quotetypes=Any`
+                - quote every field in the dataset
+"""
+
+function write(fullpath, df::DataFrame; kwargs...)
+    write(fullpath; header = string.(names(df)), data = df.columns, kwargs...)
 end

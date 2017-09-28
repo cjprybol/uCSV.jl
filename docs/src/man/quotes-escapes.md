@@ -51,7 +51,7 @@ julia> for p in players
 "Rich ""Goose"" Gossage"
 "Henry ""Hammerin' Hank"" Aaron"
 
-julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='"'))
+julia> DataFrame(uCSV.read(IOBuffer(join(players, '\n')), quotes='"', escape='"'))
 2×1 DataFrames.DataFrame
 │ Row │ x1                           │
 ├─────┼──────────────────────────────┤
@@ -75,7 +75,7 @@ julia> for p in players
 "Rich \"Goose\" Gossage"
 "Henry \"Hammerin' Hank\" Aaron"
 
-julia> DataFrame(uCSV.read(IOBuffer(join(names, '\n')), quotes='"', escape='\\'))
+julia> DataFrame(uCSV.read(IOBuffer(join(players, '\n')), quotes='"', escape='\\'))
 2×1 DataFrames.DataFrame
 │ Row │ x1                           │
 ├─────┼──────────────────────────────┤

@@ -127,7 +127,7 @@ end
     1,2,3
     """
     e = @test_throws ArgumentError uCSV.read(IOBuffer(s), types=Dict("col2" => Float64))
-    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. iscategorical\n  4. colparsers\nwas provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
 
     s =
     """
@@ -633,25 +633,25 @@ end
     a,b,c
     a,b,c
     """
-    data, header = uCSV.read(IOBuffer(s), iscategorical=true)
+    data, header = uCSV.read(IOBuffer(s), coltypes=CategoricalVector)
     @test data == Any[CategoricalVector(["a", "a", "a", "a"]),
                       CategoricalVector(["b", "b", "b", "b"]),
                       CategoricalVector(["c", "c", "c", "c"])]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), iscategorical=[true, true, true])
+    data, header = uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector, 3))
     @test data == Any[CategoricalVector(["a", "a", "a", "a"]),
                       CategoricalVector(["b", "b", "b", "b"]),
                       CategoricalVector(["c", "c", "c", "c"])]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), iscategorical=Dict(1 => true, 2 => true, 3 => true))
+    data, header = uCSV.read(IOBuffer(s), coltypes=Dict(i => CategoricalVector for i in 1:3))
     @test data == Any[CategoricalVector(["a", "a", "a", "a"]),
                       CategoricalVector(["b", "b", "b", "b"]),
                       CategoricalVector(["c", "c", "c", "c"])]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), header=1, iscategorical=Dict("a" => true, "b" => true, "c" => true))
+    data, header = uCSV.read(IOBuffer(s), header=1, coltypes=Dict(s => CategoricalVector for s in ["a", "b", "c"]))
     @test data == Any[CategoricalVector(["a", "a", "a"]),
                       CategoricalVector(["b", "b", "b"]),
                       CategoricalVector(["c", "c", "c"])]
@@ -734,11 +734,14 @@ end
 end
 
 
-if Sys.WORD_SIZE == 64
+if Sys.WORD_SIZE == 64 && !is_windows()
     @testset "Write Iris" begin
         df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.gz"))), header=1))
         outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt")
         uCSV.write(outpath, header = string.(names(df)), data = df.columns)
+        @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
+
+        uCSV.write(outpath, df)
         @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
 
         uCSV.write(open(outpath, "w"), header = string.(names(df)), data = df.columns)

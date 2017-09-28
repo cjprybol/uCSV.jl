@@ -1,5 +1,5 @@
 function parsesource(source, delim, quotes, escape, comment, encodings, header, skiprows,
-                     types, isnullable, iscategorical, colparsers, typeparsers,
+                     types, isnullable, coltypes, colparsers, typeparsers,
                      typedetectrows, skipmalformed, trimwhitespace)
 
     currentline = 0
@@ -91,14 +91,14 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     end
 
     # convert all of the available parsing requests to dictionaries index by column-index
-    index2type::Dict{Int, Type} = getintdict(types, numcols, colnames)
+    index2type = getintdict(types, numcols, colnames)
     for (i, iq) in enumerate(isquoted)
         if !haskey(index2type, i) && iq
             index2type[i] = String
         end
     end
-    index2nullable::Dict{Int, Bool} = getintdict(isnullable, numcols, colnames)
-    index2categorical::Dict{Int, Bool} = getintdict(iscategorical, numcols, colnames)
+    index2nullable = getintdict(isnullable, numcols, colnames)
+    index2coltype = getintdict(coltypes, numcols, colnames)
     index2parser::Dict{Int, Function} = getintdict(colparsers, numcols, colnames)
     type2parser::Dict{DataType, Function} = Dict(Int64 => x -> parse(Int64, x),
                                                  Int32 => x -> parse(Int32, x),
@@ -147,23 +147,23 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     # determine the type of each column of data based on parsed data and user-specified types
     valtypes = typeof.(vals)
-    coltypes = Vector{Type}(size(vals, 2))
-    for col in 1:length(coltypes)
+    eltypes = Vector{Type}(size(vals, 2))
+    for col in 1:length(eltypes)
         if haskey(index2type, col)
-            coltypes[col] = index2type[col]
+            eltypes[col] = index2type[col]
         else
             if any(x -> x == String, valtypes[:, col])
-                coltypes[col] = String
+                eltypes[col] = String
                 for (row, v) in enumerate(vals[:, col])
                     vals[row, col] = isnull(vals[row, col]) ? vals[row, col] : string(vals[row, col])
                 end
             else
-                coltypes[col] = promote_type([T for T in valtypes[:, col] if T != Null]...)
+                eltypes[col] = promote_type([T for T in valtypes[:, col] if T != Null]...)
             end
         end
         if (haskey(index2nullable, col) && index2nullable[col]) ||
             any(x -> x == Null, valtypes[:, col])
-            coltypes[col] = Union{coltypes[col], Null}
+            eltypes[col] = Union{eltypes[col], Null}
         end
     end
     if any(values(index2nullable)) && !any(isnull, values(encodings))
@@ -174,8 +174,8 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     # create typed data columns and fill the columns with data parsed while detecting types
     n = size(vals, 1)
-    data = [Vector{T}(n) for T in coltypes]
-    for (col, T) in enumerate(coltypes)
+    data = [haskey(index2coltype, i) ? index2coltype[i]{T}(n) : Vector{T}(n) for (i, T) in enumerate(eltypes)]
+    for (col, T) in enumerate(eltypes)
         if T == String
             for (row, val) in enumerate(vals[:, col])
                 data[col][row] = string(val)
@@ -186,7 +186,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     end
 
     # fill in remaining column parsing rules with type rules
-    for (i, T) in enumerate(coltypes)
+    for (i, T) in enumerate(eltypes)
         if !haskey(index2parser, i)
             index2parser[i] = x -> type2parser[Nulls.T(T)](x)
         end
@@ -253,10 +253,5 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     end
     data = convert(Vector{Any}, data)
     # apply CategoricalVector requests
-    for (k,v) in index2categorical
-        if v
-            data[k] = CategoricalVector(data[k])
-        end
-    end
     return data, colnames
 end

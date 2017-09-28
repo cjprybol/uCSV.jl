@@ -4,7 +4,7 @@ function getintdict(arg::Vector, numcols::Int, colnames::Vector{String})
                             One of the following user-supplied arguments:
                               1. types
                               2. isnullable
-                              3. iscategorical
+                              3. coltypes
                               4. colparsers
                             was provided as a vector and the length of this vector ($(length(arg))) != the number of detected columns ($numcols).
                             """))
@@ -18,7 +18,7 @@ function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{Stri
                             One of the following user-supplied arguments:
                               1. types
                               2. isnullable
-                              3. iscategorical
+                              3. coltypes
                               4. colparsers
                             was provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.
                             """))

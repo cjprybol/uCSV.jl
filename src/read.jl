@@ -9,7 +9,7 @@
          skiprows=Vector{Int}(),
          types=Dict{Int,DataType}(),
          isnullable=Dict{Int,Bool}(),
-         iscategorical=Dict{Int,Bool}(),
+         coltypes=Vector,
          colparsers=Dict{Int,Function}(),
          typeparsers=Dict{DataType, Function}(),
          typedetectrows=1,
@@ -98,7 +98,7 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `skiprows=6:typemax(Int)`
             - read only the first 5 lines of the dataset
 - `types::Union{Type, Dict{Int, Type}, Dict{String, Type}, Vector{Type}}`
-    - declare the types of the columns, can be in any of the following forms:
+    - declare the types of the columns
         - scalar, e.g. `types=Bool`
             - scalars will be broadcast to apply to every column of the dataset
         - vector, e.g. `types=[Bool, Int, Float64, String, Symbol, Date, DateTime]`
@@ -118,8 +118,7 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `DateTime` -- only the default datetime format will work
         - for other types or unsupported formats, see `colparsers` and `typeparsers`
 - `isnullable::Union{Bool, Dict{Int, Bool}, Dict{String, Bool}, Vector{Bool}}`
-    - declare whether columns should have element-type `Union{T, Null} where T`,
-      can be in any of the following forms:
+    - declare whether columns should have element-type `Union{T, Null} where T`
         - scalar, e.g. `isnullable=true`
             - scalars will be broadcast to apply to every column of the dataset
         - vector, e.g. `isnullable=[true, false, true, true]`
@@ -130,18 +129,18 @@ Take an input file or IO source and user-defined parsing rules and return:
     - default: `isnullable=Dict{Int,Bool}()`
         - column-types are only nullable if null values are detected in rows
           `1:typedetectrows`.
-- `iscategorical::Union{Bool, Dict{Int, Bool}, Dict{String, Bool}, Vector{Bool}}`
-    - declare whether columns should be `CategoricalVector`s
-      can be in any of the following forms:
-        - scalar, e.g. `iscategorical=true`
+- `coltypes::Union{AbstractVector, Dict{Int, AbstractVector}, Dict{String, AbstractVector}, Vector{AbstractVector}}`
+    - declare the type of vector that should be used for columns
+    - should work for any AbstractVector that allows `push!`ing values
+        - scalar, e.g. `coltypes=CategoricalVector`
             - scalars will be broadcast to apply to every column of the dataset
-        - vector, e.g. `iscategorical=[true, false, true, true]`
+        - vector, e.g. `coltypes=[CategoricalVector, Vector, CategoricalVector]`
             - the vector length must match the number of parsed columns
-        - dictionary, e.g. `iscategorical=("column1" => true)` or `isnullable=(17 => true)`
+        - dictionary, e.g. `coltypes=("column1" => CategoricalVector)` or `coltypes=(17 => CategoricalVector)`
             - users can refer to the columns by name (only if a header is provided or
               parsed!) or by index
-    - default: `iscategorical=Dict{Int,Bool}()`
-        - all columns are returned as standard julia vectors
+    - default: `coltypes=Vector`
+        - all columns are returned as standard julia `Vector`s
 - `colparsers::Union{Function, Dict{Int, Function}, Dict{String, Function}, Vector{Function}}`
     - provide custom functions for converting parsed strings to values by column
         - scalar, e.g. `colparsers=(x -> parse(Float64, replace(x, ',', '.')))`
@@ -190,7 +189,7 @@ function read(fullpath::Union{String,IO};
               skiprows::AbstractVector{Int}=Vector{Int}(),
               types::Union{T1,COLMAP{T1},Vector{T1}} where {T1<:Type}=Dict{Int,DataType}(),
               isnullable::Union{Bool,COLMAP{Bool},Vector{Bool}}=Dict{Int,Bool}(),
-              iscategorical::Union{Bool, COLMAP{Bool}, Vector{Bool}}=Dict{Int,Bool}(),
+              coltypes::Union{Type{<:AbstractVector},COLMAP{UnionAll},Vector{UnionAll}}=Vector,
               colparsers::Union{F1, COLMAP{F1}, Vector{F1}} where F1=Dict{Int,Function}(),
               typeparsers::Dict{T2, F2} where {T2<:Type, F2}=Dict{DataType, Function}(),
               typedetectrows::Int=1,
@@ -204,13 +203,18 @@ function read(fullpath::Union{String,IO};
         else
             @assert length(unique(string.(reserved))) == length(reserved)
         end
+        if isa(coltypes, Vector{UnionAll})
+            @assert all(x -> x <: AbstractVector, coltypes)
+        elseif isa(coltypes, COLMAP{UnionAll})
+            @assert all(x -> x <: AbstractVector, collect(values(coltypes)))
+        end
         if typedetectrows > 100
             warn("""
                  Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead.
                  """)
         end
         data, colnames = parsesource(source, delim, quotes, escape, comment, encodings,
-                                     header, skiprows, types, isnullable, iscategorical,
+                                     header, skiprows, types, isnullable, coltypes,
                                      colparsers, typeparsers, typedetectrows, skipmalformed,
                                      trimwhitespace)
         return data, colnames
