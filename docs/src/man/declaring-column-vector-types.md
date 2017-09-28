@@ -1,7 +1,5 @@
 # Declaring Column Vector Types
 
-```@contents
-```
 ## CategoricalArrays & other column types
 
 Declaring all columns should be parsed as CategoricalArrays

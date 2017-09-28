@@ -6,7 +6,7 @@
                    quotes=null,
                    quotetypes=AbstractString)
 
-write a dataset
+write a dataset to disk or IO
 
 # Arguments
 - `fullpath::Union{String, IO}`
@@ -16,7 +16,7 @@ write a dataset
         - default: `header=null`
             - no header is written
 - `data::Union{Vector{<:Any}, Null}`
-    - the dataset to write to disk
+    - the dataset to write to disk or IO
         - default: `data=null`
             - no data is written
 - `delim::Union{Char, String}`
@@ -98,13 +98,13 @@ end
                    quotes=null,
                    quotetypes=AbstractString)
 
-write a DataFrame to disk
+write a DataFrame to disk or IO
 
 # Arguments
 - `fullpath::Union{String, IO}`
     - the path on disk or IO where you want to write to.
 - `df::DataFrame`
-    - the DataFrame to be written to disk
+    - the DataFrame to write to disk or IO
 - `delim::Union{Char, String}`
     - the delimiter to seperate fields by
     - default: `delim=','`

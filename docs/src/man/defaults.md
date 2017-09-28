@@ -50,8 +50,4 @@ Some examples of what `uCSV.read` can handle:
 - Reading files from URLs (via [HTTP.jl](https://github.com/JuliaWeb/HTTP.jl)) and from compressed sources (via [TranscodingStreams.jl](https://github.com/bicycle1885/TranscodingStreams.jl#codec-packages))
 - And more!
 
-`uCSV.read` will only try and parse your data into `Int`s, `Float64`s, or `String`s, by default. No need to worry about the parser imposing any specialty vector- or element-types during the parsing that may conflict with downstream processing. If there's something `uCSV` doesn't support that you'd like to see, file an issue or open a pull request!
-
-## `uCSV.write()`
-
-Give `uCSV.write` some data and a header (or just one or the other), a delimiter (if you wan't something other than a comma), a quote character (if you want fields to be quoted), and a declaration of what column-types you'd like to be quoted (it defaults to string columns). That's it!
+`uCSV.read` will only try and parse your data into `Int`s, `Float64`s, or `String`s, by default.
