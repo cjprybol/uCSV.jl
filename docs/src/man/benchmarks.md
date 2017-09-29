@@ -1,8 +1,8 @@
 # Benchmarks
 
-Note these are not exhaustive, but I've done by best to cover various common formats and to ensure that all of the readers output the data using standard Julia Vectors and Types for accurate comparison. This does not necessarily reflect the strengths or weaknesses of the other packages relative to uCSV.
+Note these are not exhaustive, but they do cover various common formats and try to constrain outputs to a common format for evaluating on a (pseudo-)level playing-field. This does not necessarily reflect the strengths or weaknesses of the other packages relative to uCSV, it's simply to observe the relative times and memory usage required to perform equivalent tasks.
 
-All runs are done *WITHOUT* warmups or precompiling. Reading CSV files in Julia is an interesting problem. The strength of Julia is that it will compile functions on the first call, making all successive calls much faster (often orders of magnitude faster). But very rarely will users need to read the same file twice, making the precompiled runtimes for these functions a poor reflection of real-world use, and thus they are not shown.
+All runs are done *WITHOUT* warmups or precompiling. Reading CSV files in Julia is an interesting problem. A major strength of Julia is that it will compile functions on the first call, making all successive calls faster (often 3-4 orders of magnitude faster). But very rarely will users need to read the same file twice, making the precompiled runtimes for these functions a poor reflection of real-world use, and thus they are not shown.
 
 ## Read
 
