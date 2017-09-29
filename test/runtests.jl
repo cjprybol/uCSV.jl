@@ -1,5 +1,4 @@
 using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls, CategoricalArrays
-
 # TODO make this @__FILE__
 files = joinpath(Pkg.dir("uCSV"), "test", "data")
 GDS = GzipDecompressionStream
@@ -218,18 +217,26 @@ end
                       ["\"E350\""]]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), quotes='"')
-    @test data == Any[["1997"],
-                      ["Ford"],
-                      ["E350"]]
-    @test header == Vector{String}()
-
     data, header = uCSV.read(IOBuffer(s), quotes='"', escape='"')
     @test data == Any[["\"1997\""],
                       ["Ford"],
                       ["E350"]]
     @test header == Vector{String}()
 
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), quotes='"')
+    @test e.value.msg == "Unexpected field breakpoint detected in line 1.\nline:\n   \"\"\"1997\"\"\",\"Ford\",\"E350\"\nThis may be due to nested double quotes `\"\"` within quoted fields.\nIf so, please set `escape=\"` to resolve\n"
+
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), header=1, quotes='"')
+    @test e.value.msg == "Unexpected field breakpoint detected in header.\nline:\n   \"\"\"1997\"\"\",\"Ford\",\"E350\"\nThis may be due to nested double quotes `\"\"` within quoted fields.\nIf so, please set `escape=\"` to resolve\n"
+
+    s =
+    """
+    field1,field2,field3
+    \"\"\"1997\"\"\",\"Ford\",\"E350\"
+    """
+
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), quotes='"')
+    @test e.value.msg == "Unexpected field breakpoint detected in line 2.\nline:\n   \"\"\"1997\"\"\",\"Ford\",\"E350\"\nThis may be due to nested double quotes `\"\"` within quoted fields.\nIf so, please set `escape=\"` to resolve\n"
 
     s =
     """
@@ -419,7 +426,7 @@ end
 
     data, header = uCSV.read(IOBuffer(s), quotes='"')
     @test data == Any[[1997],
-                      [" Ford "],
+                      ["Ford"],
                       ["E350"]]
     @test header ==  Vector{String}()
 
@@ -452,7 +459,7 @@ end
     @test data == Any[[1997],
                       ["Ford"],
                       ["E350"],
-                      [" Super luxurious truck "]]
+                      ["Super luxurious truck"]]
     @test header ==  Vector{String}()
 end
 
@@ -984,7 +991,7 @@ end
 
 @testset "battles.csv.gz" begin
     f = joinpath(files, "battles.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict{String,Any}("" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', encodings=Dict{String,Any}("" => null), typedetectrows=100))
     @test names(df) == [:name, :year, :battle_number, :attacker_king, :defender_king, :attacker_1, :attacker_2, :attacker_3, :attacker_4, :defender_1, :defender_2, :defender_3, :defender_4, :attacker_outcome, :battle_type, :major_death, :major_capture, :attacker_size, :defender_size, :attacker_commander, :defender_commander, :summer, :location, :region, :note]
     @test size(df) == (38, 25)
     @test typeof.(df.columns) == [Vector{T} for T in
@@ -1074,7 +1081,7 @@ end
 
 @testset "hospice-compare-casper-aspen-contacts.csv.gz" begin
     f = joinpath(files, "hospice-compare-casper-aspen-contacts.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"'))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"'))
     @test names(df) == [:Region, :State, :Contact, :Email, :Phone]
     @test size(df) == (64, 5)
     @test typeof.(df.columns) == [Vector{T} for T in
@@ -1165,7 +1172,7 @@ end
 
 @testset "payment-year-2017.csv.gz" begin
     f = joinpath(files, "payment-year-2017.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes = '"', encodings=Dict{String, Any}("" => null, "-" => null, "No Score" => null, "N/A" => null), typedetectrows=1000, isnullable=true))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes = '"', escape='"', encodings=Dict{String, Any}("" => null, "-" => null, "No Score" => null, "N/A" => null), typedetectrows=1000, isnullable=true))
     @test names(df) == [Symbol("Facility Name"), Symbol("CMS Certification Number (CCN)"), Symbol("Alternate CCN 1"), Symbol("Address 1"), Symbol("Address 2"), :City, :State, Symbol("Zip Code"), :Network, Symbol("VAT Catheter Measure Score"), Symbol("VAT Catheter Achievement Measure Rate"), Symbol("Number of Patients Included in VAT Catheter Measure Score Achievement Period"), Symbol("VAT Catheter Achievement Period Numerator"), Symbol("VAT Catheter Achievement Period Denominator"), Symbol("VAT Catheter Improvement Measure Rate"), Symbol("VAT Catheter Improvement Period Numerator"), Symbol("VAT Catheter Improvement Period Denominator"), Symbol("VAT Catheter Measure Score Applied"), Symbol("VAT Fistula Measure Score"), Symbol("VAT Fistula Achievement Measure Rate"), Symbol("Number of Patients Included in VAT Fistula Measure Score Achievement Period"), Symbol("VAT Fistula Achievement Period Numerator"), Symbol("VAT Fistula Achievement Period Denominator"), Symbol("VAT Fistula Improvement Measure Rate"), Symbol("VAT Fistula Improvement Period Numerator"), Symbol("VAT Fistula Improvement Period Denominator"), Symbol("VAT Fistula Measure Score Applied"), Symbol("VAT Combined Measure Score"), Symbol("National Avg VAT Combined Measure Score"), Symbol("Kt/V Adult Hemodialysis Measure Score"), Symbol("Kt/V Adult Hemodialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Adult Hemodialysis Measure Score Achievement Period"), Symbol("Kt/V Adult Hemodialysis Achievement Period Numerator"), Symbol("Kt/V Adult Hemodialysis Achievement Period Denominator"), Symbol("Kt/V Adult Hemodialysis Improvement Measure Rate"), Symbol("Kt/V Adult Hemodialysis Improvement Period Numerator"), Symbol("Kt/V Adult Hemodialysis Improvement Period Denominator"), Symbol("Kt/V Adult Hemodialysis Measure Score Applied"), Symbol("Kt/V Adult Peritoneal Dialysis Measure Score"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Adult Peritoneal Dialysis Measure Score Achievement Period"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Period Numerator"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Period Denominator"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Measure Rate"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Period Numerator"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Period Denominator"), Symbol("Kt/V Adult Peritoneal Dialysis Measure Score Applied"), Symbol("Kt/V Pediatric Hemodialysis Measure Score"), Symbol("Kt/V Pediatric Hemodialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Pediatric Hemodialysis Measure Score Achievement Period"), Symbol("Kt/V Pediatric Hemodialysis Achievement Period Numerator"), Symbol("Kt/V Pediatric Hemodialysis Achievement Period Denominator"), Symbol("Kt/V Pediatric Hemodialysis Improvement Measure Rate"), Symbol("Kt/V Pediatric Hemodialysis Improvement Period Numerator"), Symbol("Kt/V Pediatric Hemodialysis Improvement Period Denominator"), Symbol("Kt/V Pediatric Hemodialysis Measure Score Applied"), Symbol("Kt/V Dialysis Adequacy Combined Measure Score"), Symbol("National Avg Kt/V Dialysis Adequacy Combined Measure Score"), Symbol("Hypercalcemia Measure Score"), Symbol("Hypercalcemia Achievement Measure Rate"), Symbol("Number of Patients Included in Hypercalcemia Measure Score Achievement Period"), Symbol("Hypercalcemia Achievement Period Numerator"), Symbol("Hypercalcemia Achievement Period Denominator"), Symbol("Hypercalcemia Improvement Measure Rate"), Symbol("Hypercalcemia Improvement Period Numerator"), Symbol("Hypercalcemia Improvement Period Denominator"), Symbol("Hypercalcemia Measure Score Applied"), Symbol("NHSN Measure Score"), Symbol("NHSN Achievement Measure Ratio"), Symbol("Number of Patients Included in NHSN Measure Score Achievement Period"), Symbol("NHSN Observed Achievement Period Numerator"), Symbol("NHSN Predicted Achievement Period Denominator"), Symbol("NHSN Improvement Measure Ratio"), Symbol("NHSN Observed Improvement Period Numerator"), Symbol("NHSN Predicted Improvement Period Denominator"), Symbol("NHSN Measure Score Applied"), Symbol("ICH CAHPS Admin Score"), Symbol("Mineral Metabolism Reporting Score"), Symbol("Anemia Management Reporting Score"), Symbol("SRR Measure Score"), Symbol("SRR Achievement Measure Ratio"), Symbol("SRR Index Discharges"), Symbol("SRR Achievement Period Numerator"), Symbol("SRR Achievement Period Denominator"), Symbol("SRR Improvement Measure Ratio"), Symbol("SRR Improvement Period Numerator"), Symbol("SRR Improvement Period Denominator"), Symbol("SRR Measure Score Applied"), Symbol("Total Performance Score"), Symbol("PY2017 Payment Reduction Percentage"), Symbol("CMS Certification Date"), Symbol("Ownership as of December 31, 2015"), Symbol("Date of Ownership Record Update")]
     @test size(df) == (6550, 93)
     @test typeof.(df.columns) == [Vector{T} for T in

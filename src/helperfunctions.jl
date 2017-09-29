@@ -100,3 +100,57 @@ function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
     end
     return m
 end
+
+function throwbadbreak(location, line, quotes)
+    if isa(quotes, Null)
+        throw(ErrorException("""
+                             Unexpected field breakpoint detected in $location.
+                             line:
+                                $line
+                             """))
+    else
+        throw(ErrorException("""
+                             Unexpected field breakpoint detected in $location.
+                             line:
+                                $line
+                             This may be due to nested double quotes `$quotes$quotes` within quoted fields.
+                             If so, please set `escape=$quotes` to resolve
+                             """))
+    end
+end
+
+function throwbadconversion(f, currentline, i, encodings, data)
+    if haskey(encodings, f)
+        throw(ErrorException("""
+                             Error parsing field "$f" in row $currentline, column $i.
+                             Unable to push value $(encodings[f]) to column of type $(eltype(data[i]))
+                             Possible fixes may include:
+                               1. set `typedetectrows` to a value >= $currentline
+                               2. manually specify the element-type of column $i via the `types` argument
+                               3. manually specify a parser for column $i via the `parsers` argument
+                               4. if the value is null, setting the `isnullable` argument
+                             """))
+    else
+        throw(ErrorException("""
+                             Error parsing field "$f" in row $currentline, column $i.
+                             Unable to parse field "$f" as type $(eltype(data[i]))
+                             Possible fixes may include:
+                               1. set `typedetectrows` to a value >= $currentline
+                               2. manually specify the element-type of column $i via the `types` argument
+                               3. manually specify a parser for column $i via the `parsers` argument
+                               4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.
+                             """))
+    end
+end
+
+function throwcolumnnumbermismatch(header, colnames, numcols)
+    if isa(header, Int)
+        throw(ErrorException("""
+                             parsed header $colnames has $(length(colnames)) columns, but $numcols were detected the in dataset.
+                             """))
+    else
+        throw(ArgumentError("""
+                            user-provided header $header has $(length(header)) columns, but $numcols were detected the in dataset.
+                            """))
+    end
+end

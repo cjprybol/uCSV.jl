@@ -44,10 +44,10 @@ Take an input file or IO source and user-defined parsing rules and return:
         - by default, the parser does not check for escapes.
     - frequently used:
         - `escape='"'`
-            - double-quotes within quotes, e.g. "firstname ""nickname"" lastname"
+            - double-quotes within quotes, e.g. `"firstname ""nickname"" lastname"`
         - `escape='\\\\'`
             - note that the first backslash is just to escape the second backslash
-            - e.g. "firstname \\\"nickname\\\" lastname"
+            - e.g. `"firstname \\\"nickname\\\" lastname"`
 - `comment::Union{Char,String,Null}`
     - the character or string used for comment lines in your dataset
         - note that skipped comment lines do not contribute to the line count for the header
@@ -176,7 +176,8 @@ Take an input file or IO source and user-defined parsing rules and return:
         - malformed lines result in an error
 - `trimwhitespace::Bool=false`
     - specify whether should extra whitespace be removed from the beginning and ends of fields.
-    - Quoted leading and trailing whitespace will not be trimmed.
+    - leading and trailing whitespace *OUTSIDE* of quoted fields is trimmed by default.
+    - `trimwhitespace=true` will also trim leading and trailing whitespace *WITHIN* quotes
 """
 
 function read(fullpath::Union{String,IO};
@@ -208,6 +209,7 @@ function read(fullpath::Union{String,IO};
         elseif isa(coltypes, COLMAP{UnionAll})
             @assert all(x -> x <: AbstractVector, collect(values(coltypes)))
         end
+        @assert typedetectrows >= 1
         if typedetectrows > 100
             warn("""
                  Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead.
