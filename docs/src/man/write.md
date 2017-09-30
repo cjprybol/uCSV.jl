@@ -44,7 +44,7 @@ Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
 
 ```
 
-Users can specify delimiters other than `,`
+Users can specify delimiters other than `','`
 ```jldoctest
 ulia> using uCSV, DataFrames, CodecZlib, Nulls
 
