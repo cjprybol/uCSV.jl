@@ -35,10 +35,11 @@ end
 
 function parsefields(line::AbstractString, delim, quotes::Null, escape::Null, trimwhitespace::Bool)
     fields = split(line, delim)
+    isquoted = falses(length(fields))
     if trimwhitespace
         for (i, f) in enumerate(fields)
             fields[i] = strip(fields[i])
         end
     end
-    return fields, false, false
+    return fields, isquoted, false
 end

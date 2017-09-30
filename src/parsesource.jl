@@ -1,6 +1,6 @@
 function parsesource(source, delim, quotes, escape, comment, encodings, header, skiprows,
-                     types, isnullable, coltypes, colparsers, typeparsers,
-                     typedetectrows, skipmalformed, trimwhitespace)
+                     types, isnullable, coltypes, colparsers, typeparsers, typedetectrows,
+                     skipmalformed, trimwhitespace)
 
     currentline = 0
     colnames = Vector{String}()
@@ -37,17 +37,18 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     # DETERMINE COLUMN TYPES AND PARSING FUNCTIONS FOR EACH COLUMN
     #######################################################################################
     numcols = 0
-    rawstrings = Array{SubString{String}, 2}(typedetectrows, numcols)
+    rawstrings = Vector{Vector{SubString{String}}}()
     isquoted = Vector{Bool}(numcols)
     currentline = 0
-    linesparsedfortypedetection = 0
-    while !eof(source) && linesparsedfortypedetection < typedetectrows
+    # lines parsed for type detection
+    linesparsed = 0
+    while !eof(source) && linesparsed < typedetectrows
         line = _readline(source, comment)
         currentline += 1
         if in(currentline, skiprows)
             continue
         end
-        linesparsedfortypedetection += 1
+        linesparsed += 1
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
         eof(source) && length(fields) == 1 && isempty(fields[1]) && return Any[], colnames
         while badbreak
@@ -58,26 +59,27 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
             end
         end
-        if linesparsedfortypedetection == 1
+        if linesparsed == 1
             numcols = length(fields)
-            rawstrings = Array{SubString{String}, 2}(typedetectrows, numcols)
+            for i in 1:numcols
+                push!(rawstrings, Vector{SubString{String}}())
+            end
             isquoted = falses(numcols)
         elseif length(fields) != numcols
             handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
-            linesparsedfortypedetection -= 1
+            linesparsed -= 1
             continue
         end
-        rawstrings[linesparsedfortypedetection, :] .= fields
-        isquoted .|= quoted
+        for (i, (f, q)) in enumerate(zip(fields, quoted))
+            push!(rawstrings[i], f)
+            isquoted[i] |= q
+        end
     end
 
-    if currentline == 0 || eof(source) && (size(rawstrings, 2) == 0)
+    if currentline == 0 || eof(source) && isempty(rawstrings)
         return Any[], colnames
-    elseif linesparsedfortypedetection < typedetectrows
-        rawstrings = rawstrings[1:linesparsedfortypedetection, :]
     end
 
-    numcols = size(rawstrings, 2)
     if !isempty(colnames) && length(colnames) != numcols
         throwcolumnnumbermismatch(header, colnames, numcols)
     end
@@ -110,29 +112,29 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     @assert all(v -> isa(v, Function), values(type2parser))
     @assert all(v -> isa(v, Function), values(index2parser))
 
-    vals = Array{Any, 2}(size(rawstrings)...)
+    vals = Array{Any, 2}(linesparsed, numcols)
 
     # convert parsed fields from raw strings to correct types based on user-requests and defaults
-    for col in 1:size(rawstrings, 2)
-        for row in 1:size(rawstrings, 1)
-            if haskey(encodings, rawstrings[row, col])
-                vals[row, col] = encodings[rawstrings[row, col]]
+    for col in 1:numcols
+        for row in 1:linesparsed
+            if haskey(encodings, rawstrings[col][row])
+                vals[row, col] = encodings[rawstrings[col][row]]
             elseif haskey(index2parser, col)
-                vals[row, col] = index2parser[col](rawstrings[row, col])
+                vals[row, col] = index2parser[col](rawstrings[col][row])
             elseif haskey(index2type, col)
-                vals[row, col] = type2parser[Nulls.T(index2type[col])](rawstrings[row, col])
+                vals[row, col] = type2parser[Nulls.T(index2type[col])](rawstrings[col][row])
             else
-                tryint = tryparse(Int, rawstrings[row, col])
+                tryint = tryparse(Int, rawstrings[col][row])
                 if !isnull(tryint)
                     vals[row, col] = get(tryint)
                     continue
                 end
-                tryfloat = tryparse(Float64, rawstrings[row, col])
+                tryfloat = tryparse(Float64, rawstrings[col][row])
                 if !isnull(tryfloat)
                     vals[row, col] = get(tryfloat)
                     continue
                 end
-                vals[row, col] = String(rawstrings[row, col])
+                vals[row, col] = String(rawstrings[col][row])
             end
         end
     end
@@ -153,8 +155,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 eltypes[col] = promote_type([T for T in valtypes[:, col] if T != Null]...)
             end
         end
-        if (haskey(index2nullable, col) && index2nullable[col]) ||
-            any(x -> x == Null, valtypes[:, col])
+        if (haskey(index2nullable, col) && index2nullable[col]) || any(x -> x == Null, valtypes[:, col])
             eltypes[col] = Union{eltypes[col], Null}
         end
     end
@@ -194,7 +195,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         end
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
         while badbreak
-            if eof(source)
+            if length(fields) > length(data) || eof(source)
                 throwbadbreak("line $currentline", line, quotes)
             else
                 line *= "\n" * readline(source)
@@ -223,7 +224,5 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             end
         end
     end
-    data = convert(Vector{Any}, data)
-    # apply CategoricalVector requests
-    return data, colnames
+    return convert(Vector{Any}, data), colnames
 end

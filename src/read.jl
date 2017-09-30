@@ -21,25 +21,24 @@ Take an input file or IO source and user-defined parsing rules and return:
 2. a `Vector{String}` containing the header (column names)
 
 # Arguments
-- `fullpath::Union{String,IO}`
+- `fullpath`
     - the path to a local file, or an open IO source from which to read data
-- `delim::Union{Char,String}`
-    - whatever the dataset is being split on
+- `delim`
+    - a `Char` or `String` that separates fields in the dataset.
     - default: `delim=','`
         - for CSV files
     - frequently used:
         - `delim='\\t'`
         - `delim=' '`
         - `delim='|'`
-    - may contain any valid UTF-8 character or string
-- `quotes::Union{Char,Null}`
-    - the character used for quoting fields in the dataset
+- `quotes`
+    - a `Char` used for quoting fields in the dataset
     - default: `quotes=null`
         - by default, the parser does not check for quotes.
     - frequently used:
         - `quotes='"'`
-- `escape::Union{Char,Null}`
-    - the character used for escaping other special & reserved parsing characters
+- `escape`
+    - a `Char` used for escaping other reserved parsing characters
     - default: `escape=null`
         - by default, the parser does not check for escapes.
     - frequently used:
@@ -48,8 +47,8 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `escape='\\\\'`
             - note that the first backslash is just to escape the second backslash
             - e.g. `"firstname \\\"nickname\\\" lastname"`
-- `comment::Union{Char,String,Null}`
-    - the character or string used for comment lines in your dataset
+- `comment`
+    - a `Char` or `String` at the beginning of lines that should be skipped as comments
         - note that skipped comment lines do not contribute to the line count for the header
           (if the user requests parsing a header on a specific row) or for skiprows
     - default: `comment=null`
@@ -58,8 +57,8 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `comment='#'`
         - `comment='!'`
         - `comment="#!"`
-- `encodings::Dict{String,Any}`
-    - A dictionary mapping parsed strings to desired julia values
+- `encodings`
+    - a `Dict{String, Any}` mapping parsed fields to Julia values
         - if your dataset has booleans that are not represented as `"true"` and `"false"` or missing values that you'd like to read as `null`s, you'll need to use this!
     - default: `encodings=Dict{String, Any}()`
         - by default, the parser does not check for any reserved fields
@@ -77,8 +76,8 @@ Take an input file or IO source and user-defined parsing rules and return:
             - note that if the user requests `quotes`, `escapes`, or `trimwhitespace`, these requests
               will be applied (removed) the raw string *BEFORE* checking whether the field matches
               any strings in in the `encodings` argument.
-- `header::Union{Integer,Vector{String}}`
-    - The line in the dataset on which to parse the header
+- `header`
+    - an `Int` indicating which line of the dataset contains column names or a `Vector{String}` of column names
         - note that commented lines and blank lines do not contribute to this value
           e.g. if the first 3 lines of your dataset are comments, you'll still need to
           set `header=1` to interpret the first line of parsed data as the header.
@@ -86,18 +85,15 @@ Take an input file or IO source and user-defined parsing rules and return:
         - no header is checked for by default
     - frequently used:
         - `header=1`
-- `skiprows::AbstractVector{Int}`
-    - A `Vector` or `Range` (e.g. `1:10`) or rows to skip
+- `skiprows`
+    - a `Range` or `Vector` of `Int`s indicating which rows to skip in the dataset
         - note that this is 1-based in reference to the first row *AFTER* the header.
           If `header=0` or is provided by the user, this will be the first non-empty
           line in the dataset. Otherwise `skiprows=1:1` will skip the `header+1`-nth line
           in the file.
     - default: `skiprows=Vector{Int}()`
         - no rows are skipped
-    - frequently used:
-        - `skiprows=6:typemax(Int)`
-            - read only the first 5 lines of the dataset
-- `types::Union{Type, Dict{Int, Type}, Dict{String, Type}, Vector{Type}}`
+- `types`
     - declare the types of the columns
         - scalar, e.g. `types=Bool`
             - scalars will be broadcast to apply to every column of the dataset
@@ -117,9 +113,9 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `Date` -- only the default date format will work
         - `DateTime` -- only the default datetime format will work
         - for other types or unsupported formats, see `colparsers` and `typeparsers`
-- `isnullable::Union{Bool, Dict{Int, Bool}, Dict{String, Bool}, Vector{Bool}}`
+- `isnullable`
     - declare whether columns should have element-type `Union{T, Null} where T`
-        - scalar, e.g. `isnullable=true`
+        - boolean scalar, e.g. `isnullable=true`
             - scalars will be broadcast to apply to every column of the dataset
         - vector, e.g. `isnullable=[true, false, true, true]`
             - the vector length must match the number of parsed columns
@@ -129,7 +125,7 @@ Take an input file or IO source and user-defined parsing rules and return:
     - default: `isnullable=Dict{Int,Bool}()`
         - column-types are only nullable if null values are detected in rows
           `1:typedetectrows`.
-- `coltypes::Union{AbstractVector, Dict{Int, AbstractVector}, Dict{String, AbstractVector}, Vector{AbstractVector}}`
+- `coltypes`
     - declare the type of vector that should be used for columns
     - should work for any AbstractVector that allows `push!`ing values
         - scalar, e.g. `coltypes=CategoricalVector`
@@ -180,7 +176,7 @@ Take an input file or IO source and user-defined parsing rules and return:
     - `trimwhitespace=true` will also trim leading and trailing whitespace *WITHIN* quotes
 """
 
-function read(fullpath::Union{String,IO};
+function read(source::IO;
               delim::Union{Char,String}=',',
               quotes::Union{Char,Null}=null,
               escape::Union{Char,Null}=null,
@@ -197,9 +193,8 @@ function read(fullpath::Union{String,IO};
               skipmalformed::Bool=false,
               trimwhitespace::Bool=false)
 
-        source = isa(fullpath, IO) ? fullpath : open(fullpath)
         reserved = filter(x -> !isnull(x), [delim, quotes, escape, comment])
-        if !isnull(quotes) && quotes == escape
+        if !isnull(quotes) && isequal(quotes, escape)
             @assert length(unique(string.(reserved))) == length(reserved) - 1
         else
             @assert length(unique(string.(reserved))) == length(reserved)
@@ -215,9 +210,11 @@ function read(fullpath::Union{String,IO};
                  Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead.
                  """)
         end
-        data, colnames = parsesource(source, delim, quotes, escape, comment, encodings,
-                                     header, skiprows, types, isnullable, coltypes,
-                                     colparsers, typeparsers, typedetectrows, skipmalformed,
-                                     trimwhitespace)
-        return data, colnames
+        return parsesource(source, delim, quotes, escape, comment, encodings, header,
+                           skiprows, types, isnullable, coltypes, colparsers, typeparsers,
+                           typedetectrows, skipmalformed, trimwhitespace)
+end
+
+function read(fullpath::String; kwargs...)
+    read(open(fullpath); kwargs...)
 end

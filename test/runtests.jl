@@ -2,6 +2,7 @@ using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls, Categorica
 # TODO make this @__FILE__
 files = joinpath(Pkg.dir("uCSV"), "test", "data")
 GDS = GzipDecompressionStream
+const ≅ = isequal
 
 @testset "Float64 Matrix" begin
     s =
@@ -28,6 +29,17 @@ end
         [1.0 1.0 1.0;
          2.0 2.0 2.0;
          3.0 3.0 3.0]
+end
+
+@testset "uCSV.tovector" begin
+    s =
+    """
+    1.0,1.0,1.0
+    2.0,2.0,2.0
+    3.0,3.0,3.0
+    """;
+    @test uCSV.tovector(uCSV.read(IOBuffer(s))) ==
+        [1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
 end
 
 @testset "DataFrame" begin
@@ -126,7 +138,7 @@ end
     1,2,3
     """
     e = @test_throws ArgumentError uCSV.read(IOBuffer(s), types=Dict("col2" => Float64))
-    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided with column names as Strings that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
 
     s =
     """
@@ -548,31 +560,79 @@ end
     6,NA,6
     """
     data, header = uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3)
-    @test data == Any[[1, 2, 3, 4, 5, 6],
-                      ["hey", "you", null, null, null, null],
-                      [1, 2, 3, 4, 5, 6]]
+    @test data ≅ Any[[1, 2, 3, 4, 5, 6],
+                     ["hey", "you", null, null, null, null],
+                     [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true)
-    @test data == Any[[1, 2, 3, 4, 5, 6],
-                      ["hey", "you", null, null, null, null],
-                      [1, 2, 3, 4, 5, 6]]
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true)
+    @test data ≅ Any[[1, 2, 3, 4, 5, 6],
+                     ["hey", "you", null, null, null, null],
+                     [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    uCSV.read(IOBuffer(s), encodings=encodings, isnullable=Dict(2 => true))
-    @test data == Any[[1, 2, 3, 4, 5, 6],
-                      ["hey", "you", null, null, null, null],
-                      [1, 2, 3, 4, 5, 6]]
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=Dict(2 => true))
+    @test data ≅ Any[[1, 2, 3, 4, 5, 6],
+                     ["hey", "you", null, null, null, null],
+                     [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true, false])
-    @test data == Any[[1, 2, 3, 4, 5, 6],
-                      ["hey", "you", null, null, null, null],
-                      [1, 2, 3, 4, 5, 6]]
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true, false])
+    @test data ≅ Any[[1, 2, 3, 4, 5, 6],
+                     ["hey", "you", null, null, null, null],
+                     [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    @test_throws ArgumentError uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true])
+    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true])
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided as a vector and the length of this vector (2) != the number of detected columns (3).\n"
 end
+
+# consider re-enabling
+# @testset "skipcols" begin
+#     s =
+#     """
+#     1.0,1.0,1.0
+#     2.0,2.0,2.0
+#     3.0,3.0,3.0
+#     """
+#     data, header = uCSV.read(IOBuffer(s), skipcols=1)
+#     @test data == Any[[1.0, 2.0, 3.0],
+#                       [1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), skipcols=[1,2])
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), skipcols=1:2)
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), skipcols=[true, true, false])
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), skipcols=Dict(1 => true, 2 => true, 3 => false))
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), skipcols=Dict(1 => true, 2 => true))
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == Vector{String}()
+#
+#     data, header = uCSV.read(IOBuffer(s), header=["c1", "c2", "c3"], skipcols="c1")
+#     @test data == Any[[1.0, 2.0, 3.0],
+#                       [1.0, 2.0, 3.0]]
+#     @test header == ["c2", "c3"]
+#
+#     data, header = uCSV.read(IOBuffer(s), header=["c1", "c2", "c3"], skipcols=Dict("c1" => true, "c2" => true))
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == ["c3"]
+#
+#     data, header = uCSV.read(IOBuffer(s), header=["c1", "c2", "c3"], skipcols=["c1", "c2"])
+#     @test data == Any[[1.0, 2.0, 3.0]]
+#     @test header == ["c3"]
+# end
 
 @testset "Read from URL" begin
     html = "https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv"
@@ -624,12 +684,20 @@ end
     """
     # i am a comment
     I'm the header
-    skipped data
-    included data
+    skipped data 1
+    included data 1
+    included data 2
+    skipped data 3
+    skipped data 4
+    included data 3
+    included data 4
     """
-    data, header = uCSV.read(IOBuffer(s), skiprows=1:3)
-    @test data == Any[["included data"]]
-    @test header == Vector{String}()
+    data, header = uCSV.read(IOBuffer(s), comment='#', header=1, skiprows=[1,4,5])
+    @test data == Any[["included data 1",
+                       "included data 2",
+                       "included data 3",
+                       "included data 4"]]
+    @test header == ["I'm the header"]
 end
 
 @testset "CategoricalVectors" begin
@@ -663,6 +731,19 @@ end
                       CategoricalVector(["b", "b", "b"]),
                       CategoricalVector(["c", "c", "c"])]
     @test header == ["a", "b", "c"]
+end
+
+@testset "Manually Declaring eltypes" begin
+        s =
+        """
+        1
+        2
+        3
+        """
+        data, header = uCSV.read(IOBuffer(s), types=Int32)
+        @test data ==  Any[Int32[1, 2, 3]]
+        @test eltype(data[1]) == Int32
+        @test header == Vector{String}()
 end
 
 @testset "Malformed Rows" begin
@@ -717,6 +798,15 @@ end
     6,1
     """
     e = @test_throws ErrorException uCSV.read(IOBuffer(s))
+    @test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nline:\n6,1\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
+
+    s =
+    """
+    A,B,C
+    1,1,10
+    6,1
+    """
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), typedetectrows=3)
     @test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nline:\n6,1\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
 end
 
@@ -777,6 +867,18 @@ if Sys.WORD_SIZE == 64 && !is_windows()
 
         e = @test_throws AssertionError uCSV.write(outpath, header = string.(names(df))[1:2], data = df.columns)
         @test e.value.msg == "length(header) == length(data)"
+
+        uCSV.write(outpath, df, quotes='"', quotetypes=Real)
+        @test hash(read(open(outpath), String)) == 0xd6276abc14f24a7a
+
+        df[6] = convert(Vector{Union{String, Null}}, df[6]);
+        df[6][2:3] = null;
+        uCSV.write(outpath, df, quotes='"')
+        @test hash(read(open(outpath), String)) == 0x6d24228c68ac3006
+
+        df[6] = nulls(size(df, 1));
+        uCSV.write(outpath, df, quotes='"')
+        @test hash(read(open(outpath), String)) == 0x364c6121680456b7
 
         rm(outpath)
     end

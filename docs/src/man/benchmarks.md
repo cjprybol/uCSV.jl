@@ -31,7 +31,7 @@ iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
 julia> iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
-  3.032593 seconds (2.30 M allocations: 117.578 MiB, 1.61% gc time)
+  2.883561 seconds (2.16 M allocations: 112.477 MiB, 1.57% gc time)
 
 julia> @time df2 = CSV.read(GDS(open(iris_file)), types=Dict(6=>String));
   6.311389 seconds (4.18 M allocations: 206.229 MiB, 3.63% gc time)

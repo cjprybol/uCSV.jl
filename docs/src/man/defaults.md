@@ -33,6 +33,18 @@ julia> uCSV.tomatrix(uCSV.read(IOBuffer(s)))
  2.0  2.0  2.0
  3.0  3.0  3.0
 
+julia> uCSV.tovector(uCSV.read(IOBuffer(s)))
+9-element Array{Float64,1}:
+ 1.0
+ 2.0
+ 3.0
+ 1.0
+ 2.0
+ 3.0
+ 1.0
+ 2.0
+ 3.0
+
 ```
 
 Some examples of what `uCSV.read` can handle:

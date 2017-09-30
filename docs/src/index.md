@@ -5,6 +5,8 @@
 ```@docs
 uCSV.read
 uCSV.write
+uCSV.tomatrix
+uCSV.tovector
 ```
 
 ## Manual
@@ -26,6 +28,7 @@ Pages = [
     "man/url.md",
     "man/compressed.md",
     "man/unsupported.md",
+    "man/write.md",
     "man/benchmarks.md"
 ]
 Depth = 1

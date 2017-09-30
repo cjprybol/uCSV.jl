@@ -20,7 +20,7 @@ function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{Stri
                               2. isnullable
                               3. coltypes
                               4. colparsers
-                            was provided as a Dict with String keys that cannot be mapped to column indices because column names have either not been provided or have not been parsed.
+                            was provided with column names as Strings that cannot be mapped to column indices because column names have either not been provided or have not been parsed.
                             """))
     end
     if all(k -> in(k, colnames), keys(arg))
@@ -90,6 +90,7 @@ function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
     end
 end
 
+"convert the data output by uCSV.read to a Matrix"
 function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
     data = output[1]
     nrows = length(data)
@@ -99,6 +100,12 @@ function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
         m[:, col] .= data[col]
     end
     return m
+end
+
+"convert the data output by uCSV.read to a Vector"
+function tovector(output::Tuple{Vector{Any}, Vector{String}})
+    m = tomatrix(output)
+    return reshape(m, reduce(*, size(m)))
 end
 
 function throwbadbreak(location, line, quotes)

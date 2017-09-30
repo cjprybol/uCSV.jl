@@ -39,7 +39,7 @@ julia> s =
        3,3.0,c
        """;
 
-julia> data, header = uCSV.read(IOBuffer(s), header = ["Ints", "Floats", "Strings"])
+julia> data, header = uCSV.read(IOBuffer(s), header = ["Ints", "Floats", "Strings"]);
 
 julia> data
 3-element Array{Any,1}:

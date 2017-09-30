@@ -26,6 +26,7 @@ makedocs(
                                 "man/url.md",
                                 "man/compressed.md",
                                 "man/unsupported.md",
+                                "man/write.md",
                                 "man/benchmarks.md"]])
 
 deploydocs(
