@@ -243,6 +243,14 @@ end
 
     s =
     """
+    1997\\,Ford\\,E350\\
+    """
+
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), escape='\\')
+    @test e.value.msg == "Unexpected field breakpoint detected in line 1.\nline:\n   1997\\,Ford\\,E350\\\n"
+
+    s =
+    """
     field1,field2,field3
     \"\"\"1997\"\"\",\"Ford\",\"E350\"
     """
@@ -808,6 +816,8 @@ end
     """
     e = @test_throws ErrorException uCSV.read(IOBuffer(s), typedetectrows=3)
     @test e.value.msg == "Parsed 2 fields on row 3. Expected 3.\nline:\n6,1\nPossible fixes may include:\n  1. including 3 in the `skiprows` argument\n  2. setting `skipmalformed=true`\n  3. if this line is a comment, setting the `comment` argument\n  4. if fields are quoted, setting the `quotes` argument\n  5. if special characters are escaped, setting the `escape` argument\n  6. fixing the malformed line in the source or file before invoking `uCSV.read`\n"
+
+    uCSV.read(IOBuffer(s), typedetectrows=3, skipmalformed=true)
 end
 
 @testset "Booleans" begin
@@ -1143,6 +1153,15 @@ end
     @test size(df) == (768, 9)
     @test typeof.(df.columns) == [Vector{T} for T in
                                   [Int, Int, Int, Int, Int, Float64, Float64, Int, Int]]
+end
+
+@testset "empty.csv" begin
+    f = joinpath(files, "empty.csv")
+    df = DataFrame(uCSV.read(f, header=1, typedetectrows=2, quotes='"', encodings=Dict{String,Any}("" => null)))
+    @test names(df) == [:a, :b, :c]
+    @test size(df) == (2, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Null, String}, Union{Null, String}]]
 end
 
 @testset "empty.csv.gz" begin

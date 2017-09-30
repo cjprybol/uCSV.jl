@@ -1,7 +1,7 @@
 # Writing Data
 
 ```jldoctest
-julia> using uCSV, DataFrames, CodecZlib
+julia> using uCSV, DataFrames, CodecZlib, Nulls
 
 julia> df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
 

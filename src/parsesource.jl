@@ -45,12 +45,10 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     while !eof(source) && linesparsed < typedetectrows
         line = _readline(source, comment)
         currentline += 1
-        if in(currentline, skiprows)
-            continue
-        end
-        linesparsed += 1
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
-        eof(source) && length(fields) == 1 && isempty(fields[1]) && return Any[], colnames
+        if eof(source) && length(fields) == 1 && isempty(fields[1]) && currentline == 1
+            return Any[], colnames
+        end
         while badbreak
             if eof(source)
                 throwbadbreak("line $currentline", line, quotes)
@@ -59,6 +57,10 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
             end
         end
+        if in(currentline, skiprows)
+            continue
+        end
+        linesparsed += 1
         if linesparsed == 1
             numcols = length(fields)
             for i in 1:numcols
@@ -190,9 +192,6 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     while !eof(source)
         line = _readline(source, comment)
         currentline += 1
-        if in(currentline, skiprows)
-            continue
-        end
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
         while badbreak
             if length(fields) > length(data) || eof(source)
@@ -202,10 +201,11 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
             end
         end
+        if in(currentline, skiprows)
+            continue
+        end
         if length(fields) != numcols
-            if !isnull(comment) && startswith(fields[1], comment)
-                continue
-            elseif length(fields) == 1 && isempty(strip(fields[1]))
+            if eof(source) && isempty(strip(line)) || (!isnull(comment) && startswith(line, comment))
                 continue
             else
                 handlemalformed(numcols, length(fields), currentline, skipmalformed, line)
