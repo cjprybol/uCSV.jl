@@ -2,7 +2,7 @@
 
 ## `uCSV.read`
 
-`uCSV.read` enables you to construct more complex parsing-rules through a compact and flexible API that aims to handle everything from the simple to the nightmarish.
+`uCSV.read` enables you to construct complex parsing-rules through a compact and flexible API that aims to handle everything from the simplist base-case to the nightmarish.
 
 By default, it assumes that you're starting with a simple comma-delimited data matrix. This makes `uCSV.read` a suitable tool for reading raw numeric datasets for conversion to 2-D `Arrays`, in addition to reading more complex datasets
 

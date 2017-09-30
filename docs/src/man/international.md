@@ -1,8 +1,8 @@
 # International Representations for Numbers
 
-This strategy applies to any number of international data representation formats, however the most commonly requested format to support appears to be [decimal-comma floats](https://en.wikipedia.org/wiki/Decimal_mark#Hindu.E2.80.93Arabic_numeral_system).
+Julia enforces conventions for parsing numbers and dates that are very prevelant, but not universal. `uCSV.read` exposes a parsing API that allows users to parse international and non-standard formats. A very commonly encountered format that will used for the following examples is [decimal-comma floats](https://en.wikipedia.org/wiki/Decimal_mark#Hindu.E2.80.93Arabic_numeral_system).
 
-This can be done by declaring the column types in conjunction with a type-specific parser that overrides the default Float64 parsing
+Users can override the default `Float64` parsing function from Julia as long as they also declare which columns this parser should be applied to
 ```jldoctest
 julia> using uCSV, DataFrames
 
@@ -22,7 +22,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', types=Dict(1 => Float64, 2 =>
 
 ```
 
-Or by declaring the column parsers directly
+Users can also declare custom parsers by column
 ```jldoctest
 julia> using uCSV, DataFrames
 

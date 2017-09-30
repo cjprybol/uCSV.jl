@@ -1,5 +1,5 @@
 """
-    read(fullpath;
+    read(input;
          delim=',',
          quotes=null,
          escape=null,
@@ -21,10 +21,10 @@ Take an input file or IO source and user-defined parsing rules and return:
 2. a `Vector{String}` containing the header (column names)
 
 # Arguments
-- `fullpath`
+- `input`
     - the path to a local file, or an open IO source from which to read data
 - `delim`
-    - a `Char` or `String` that separates fields in the dataset.
+    - a `Char` or `String` that separates fields in the dataset
     - default: `delim=','`
         - for CSV files
     - frequently used:
@@ -34,13 +34,13 @@ Take an input file or IO source and user-defined parsing rules and return:
 - `quotes`
     - a `Char` used for quoting fields in the dataset
     - default: `quotes=null`
-        - by default, the parser does not check for quotes.
+        - by default, the parser does not check for quotes
     - frequently used:
         - `quotes='"'`
 - `escape`
     - a `Char` used for escaping other reserved parsing characters
     - default: `escape=null`
-        - by default, the parser does not check for escapes.
+        - by default, the parser does not check for escapes
     - frequently used:
         - `escape='"'`
             - double-quotes within quotes, e.g. `"firstname ""nickname"" lastname"`
@@ -75,12 +75,12 @@ Take an input file or IO source and user-defined parsing rules and return:
             - can include any number of `String` => value mappings
             - note that if the user requests `quotes`, `escapes`, or `trimwhitespace`, these requests
               will be applied (removed) the raw string *BEFORE* checking whether the field matches
-              any strings in in the `encodings` argument.
+              any strings in in the `encodings` argument
 - `header`
     - an `Int` indicating which line of the dataset contains column names or a `Vector{String}` of column names
         - note that commented lines and blank lines do not contribute to this value
           e.g. if the first 3 lines of your dataset are comments, you'll still need to
-          set `header=1` to interpret the first line of parsed data as the header.
+          set `header=1` to interpret the first line of parsed data as the header
     - default: `header=0`
         - no header is checked for by default
     - frequently used:
@@ -88,9 +88,9 @@ Take an input file or IO source and user-defined parsing rules and return:
 - `skiprows`
     - a `Range` or `Vector` of `Int`s indicating which rows to skip in the dataset
         - note that this is 1-based in reference to the first row *AFTER* the header.
-          If `header=0` or is provided by the user, this will be the first non-empty
-          line in the dataset. Otherwise `skiprows=1:1` will skip the `header+1`-nth line
-          in the file.
+          if `header=0` or is provided by the user, this will be the first non-empty
+          line in the dataset. otherwise `skiprows=1:1` will skip the `header+1`-nth line
+          in the file
     - default: `skiprows=Vector{Int}()`
         - no rows are skipped
 - `types`
@@ -124,7 +124,7 @@ Take an input file or IO source and user-defined parsing rules and return:
               parsed!) or by index
     - default: `isnullable=Dict{Int,Bool}()`
         - column-types are only nullable if null values are detected in rows
-          `1:typedetectrows`.
+          `1:typedetectrows`
 - `coltypes`
     - declare the type of vector that should be used for columns
     - should work for any AbstractVector that allows `push!`ing values
@@ -137,7 +137,7 @@ Take an input file or IO source and user-defined parsing rules and return:
               parsed!) or by index
     - default: `coltypes=Vector`
         - all columns are returned as standard julia `Vector`s
-- `colparsers::Union{Function, Dict{Int, Function}, Dict{String, Function}, Vector{Function}}`
+- `colparsers`
     - provide custom functions for converting parsed strings to values by column
         - scalar, e.g. `colparsers=(x -> parse(Float64, replace(x, ',', '.')))`
             - scalars will be broadcast to apply to every column of the dataset
@@ -149,31 +149,37 @@ Take an input file or IO source and user-defined parsing rules and return:
     - default: `colparsers=Dict{Int,Function}()`
         - column parsers are determined based on user-specified types and those
           detected from the data
-- `typeparsers::Dict{Type, Function}`
+- `typeparsers`
     - provide custom functions for converting parsed strings to values by column type
-        - note user must specify column types for this to have the intended effect,
-          as the parser uses the default type-parsers for detecting column type.
+        - *NOTE* must be used with `coltypes`. If you supply a custom Int parser you'd like to
+          use to parse column 6, you'll need to set `coltypes=dict(6 => Int)` for it to work
     - default: `colparsers=Dict{DataType, Function}()`
         - column parsers are determined based on user-specified types and those
           detected from the data
     - frequently used:
-        - `typeparsers=Dict(Int => x -> parse(Float64, replace(x, ',', '.')))` # euro-style floats!
-            - in combination with `types` to specify which columns to apply the parsers to.
-- `typedetectrows::Int=1`
+        - `typeparsers=Dict(Float64 => x -> parse(Float64, replace(x, ',', '.')))` # decimal-comma floats!
+- `typedetectrows`
     - specify how many rows of data to read before interpretting the values that each
       column should take on
+    - default: `typedetectrows=1`
+        - must be >= 1
         - commented, skipped, and empty lines are not counted when determining
           which rows are used for type detection, e.g. setting `typedetectrows=10` and
           `skiprows=1:5` means type detection will occur on rows `6:15`
-- `skipmalformed::Bool=false`
+- `skipmalformed`
     - specify whether the parser should skip a line or fail with an error if a line is
       parsed but does not contain the expected number of rows
     - default: `skipmalformed=false`
         - malformed lines result in an error
-- `trimwhitespace::Bool=false`
+- `trimwhitespace`
     - specify whether should extra whitespace be removed from the beginning and ends of fields.
+        - e.g `...., myfield ,...`
+            - `trimwhitespace=false` -> `" myfield "`
+            - `trimwhitespace=true`  -> `"myfield"`
     - leading and trailing whitespace *OUTSIDE* of quoted fields is trimmed by default.
+        - e.g. `...., " myfield " ,...` -> `" myfield "` when `quotes='"'`
     - `trimwhitespace=true` will also trim leading and trailing whitespace *WITHIN* quotes
+    - default: `trimwhitespace=false`
 """
 
 function read(source::IO;

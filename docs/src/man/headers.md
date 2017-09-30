@@ -1,6 +1,6 @@
 # Headers
 
-Headers can be supplied as an integer indicating which line of the dataset should be parsed as the column names.
+Headers can be supplied as an integer indicating which line of the dataset should be parsed as the column names
 ```jldoctest
 julia> using uCSV
 
@@ -28,7 +28,7 @@ julia> header
 
 ```
 
-The user can also supply their own names, which is convenient when the desired output is a `DataFrame` (see next section).
+The user can also supply their own names, which is convenient when the desired output is a `DataFrame` (see next section)
 ```jldoctest
 julia> using uCSV
 

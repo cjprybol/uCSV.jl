@@ -1,25 +1,25 @@
 """
-    function write(fullpath;
+    function write(output;
                    header=null,
                    data=null,
                    delim=',',
                    quotes=null,
                    quotetypes=AbstractString)
 
-write a dataset to disk or IO
+Write a dataset to disk or IO
 
 # Arguments
-- `fullpath::Union{String, IO}`
-    - the path on disk or IO where you want to write to.
-- `header::Union{Vector{String}, Null}`
-    - the column names for the data
-        - default: `header=null`
-            - no header is written
-- `data::Union{Vector{<:Any}, Null}`
-    - the dataset to write to disk or IO
-        - default: `data=null`
-            - no data is written
-- `delim::Union{Char, String}`
+- `output`
+    - the path on disk or IO where you want to write to
+- `header`
+    - the column names for the data to `output`
+    - default: `header=null`
+        - no header is written
+- `data`
+    - the dataset to write to `output`
+    - default: `data=null`
+        - no data is written
+- `delim`
     - the delimiter to seperate fields by
     - default: `delim=','`
         - for CSV files
@@ -27,19 +27,19 @@ write a dataset to disk or IO
         - `delim='\\t'`
         - `delim=' '`
         - `delim='|'`
-- `quotes::Union{Char, Null}`
+- `quotes`
     - the quoting character to use when writing fields
-        - default: `quotes=null`
-            - fields are not quoted by default, and fields are written using julia's
-              default string-printing mechanisms
+    - default: `quotes=null`
+        - fields are not quoted by default, and fields are written using julia's
+          default string-printing mechanisms
 - `quotetypes::Type`
     - when quoting fields, quote only columns where `coltype <: quotetypes`
-        - default: `quotetypes=AbsractString`
-            - only the header and fields where `coltype <: AbsractString` will be quoted
-            - note that columns of `Union{<:coltype, Null}` will also be quoted, for cases where columns that you desire to be quoted also have missing values.
-        - frequently used:
-            - `quotetypes=Any`
-                - quote every field in the dataset
+        - columns of type `Union{<:quotetypes, Null}` will also be quoted
+    - default: `quotetypes=AbsractString`
+        - only the header and fields where `coltype <: AbsractString` will be quoted
+    - frequently used:
+        - `quotetypes=Any`
+            - quote every field in the dataset
 """
 
 function write(fullpath::Union{String, IO};
@@ -92,40 +92,13 @@ function write(fullpath::Union{String, IO};
 end
 
 """
-    function write(fullpath,
+    function write(output,
                    df;
                    delim=',',
                    quotes=null,
                    quotetypes=AbstractString)
 
-write a DataFrame to disk or IO
-
-# Arguments
-- `fullpath::Union{String, IO}`
-    - the path on disk or IO where you want to write to.
-- `df::DataFrame`
-    - the DataFrame to write to disk or IO
-- `delim::Union{Char, String}`
-    - the delimiter to seperate fields by
-    - default: `delim=','`
-        - for CSV files
-    - frequently used:
-        - `delim='\\t'`
-        - `delim=' '`
-        - `delim='|'`
-- `quotes::Union{Char, Null}`
-    - the quoting character to use when writing fields
-        - default: `quotes=null`
-            - fields are not quoted by default, and fields are written using julia's
-              default string-printing mechanisms
-- `quotetypes::Type`
-    - when quoting fields, quote only columns where `coltype <: quotetypes`
-        - default: `quotetypes=AbsractString`
-            - only the header and fields where `coltype <: AbsractString` will be quoted
-            - note that columns of `Union{<:coltype, Null}` will also be quoted, for cases where columns that you desire to be quoted also have missing values.
-        - frequently used:
-            - `quotetypes=Any`
-                - quote every field in the dataset
+Write a DataFrame to disk or IO
 """
 
 function write(fullpath, df::DataFrame; kwargs...)

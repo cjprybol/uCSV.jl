@@ -2,7 +2,7 @@
 
 ## CategoricalArrays & other column types
 
-Declaring all columns should be parsed as CategoricalArrays
+Declaring all columns should be parsed as `CategoricalVector`s
 ```jldoctest
 julia> using uCSV, DataFrames, CategoricalArrays
 
@@ -22,7 +22,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=CategoricalVector)).col
 
 ```
 
-Declaring whether each column should be a CategoricalArray or not
+Declaring whether each column should be a `CategoricalVector` or not
 ```jldoctest
 julia> using uCSV, DataFrames, CategoricalArrays
 
@@ -42,7 +42,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector,
 
 ```
 
-Declaring whether specific columns should be CategoricalArrays by index
+Declaring whether specific columns should be `CategoricalVector`s by index
 ```jldoctest
 julia> using uCSV, DataFrames, CategoricalArrays
 
@@ -62,7 +62,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=Dict(3 => CategoricalVe
 
 ```
 
-Declaring whether specific columns should be CategoricalArrays by column name
+Declaring whether specific columns should be `CategoricalVector`s by column name
 ```jldoctest
 julia> using uCSV, DataFrames, CategoricalArrays
 

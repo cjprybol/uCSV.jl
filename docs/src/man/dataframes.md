@@ -1,12 +1,12 @@
 # Reading into DataFrames
 
-uCSV implements a convenience constructor for DataFrames that takes the output of `uCSV.read`
+uCSV implements a convenience constructor for `DataFrame`s that takes the output of `uCSV.read`
 (a `Tuple{Vector::Any, Vector{String}}`) and converts it to a `DataFrame`.
 
 !!! note
 
-    When NamedTuples becomes available in a release version of Julia, uCSV read will return
-    the data as a NamedTuple object and this function will be deprecated (since DataFrames
+    When NamedTuples becomes available in a future release of Julia, uCSV read will return
+    the data as a `NamedTuple` and this function will be deprecated (since `DataFrame`s
     will implement its own constructor for NamedTuples)
 
 ```jldoctest

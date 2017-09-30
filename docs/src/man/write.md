@@ -1,5 +1,7 @@
 # Writing Data
 
+`uCSV.write` supports writing generic datasets as well as writing `DataFrames`
+
 ```jldoctest
 julia> using uCSV, DataFrames, CodecZlib, Nulls
 
@@ -40,6 +42,16 @@ Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
 3,4.7,3.2,1.3,0.2,Iris-setosa
 4,4.6,3.1,1.5,0.2,Iris-setosa
 
+```
+
+Users can specify delimiters other than `,`
+```jldoctest
+ulia> using uCSV, DataFrames, CodecZlib, Nulls
+
+julia> df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
+
+julia> outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt");
+
 julia> uCSV.write(outpath, df, delim='\t')
 
 julia> for line in readlines(open(outpath))[1:5]
@@ -51,6 +63,16 @@ Id	SepalLengthCm	SepalWidthCm	PetalLengthCm	PetalWidthCm	Species
 3	4.7	3.2	1.3	0.2	Iris-setosa
 4	4.6	3.1	1.5	0.2	Iris-setosa
 
+```
+
+Quotes can also be requested, and by default they apply only to `String` (and `Union{String, Null}`) columns and the header
+```jldoctest
+julia> using uCSV, DataFrames, CodecZlib, Nulls
+
+julia> df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
+
+julia> outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt");
+
 julia> uCSV.write(outpath, df, quotes='"')
 
 julia> for line in readlines(open(outpath))[1:5]
@@ -61,6 +83,7 @@ julia> for line in readlines(open(outpath))[1:5]
 2,4.9,3.0,1.4,0.2,"Iris-setosa"
 3,4.7,3.2,1.3,0.2,"Iris-setosa"
 4,4.6,3.1,1.5,0.2,"Iris-setosa"
+
 
 julia> # columns that are Union{T, Null} where T <: quotetypes also works
        df_with_nulls = deepcopy(df);
@@ -93,6 +116,15 @@ julia> for line in readlines(open(outpath))[1:5]
 2,4.9,3.0,1.4,0.2,null
 3,4.7,3.2,1.3,0.2,null
 4,4.6,3.1,1.5,0.2,null
+```
+
+To quote every field in the dataset or other custom rules, use the `quotetypes` argument
+```jldoctest
+julia> using uCSV, DataFrames, CodecZlib, Nulls
+
+julia> df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
+
+julia> outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt");
 
 julia> uCSV.write(outpath, df, quotes='"', quotetypes=Any)
 

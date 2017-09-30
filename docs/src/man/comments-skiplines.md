@@ -57,11 +57,11 @@ julia> header
 
 ```
 
-Skipping comments by declaring what commented lines start with and what line the header starts.
+Skipping comments by declaring what commented lines start with and what line the header starts
 
 !!! note
 
-    Lines skipped because they are blank/empty or via `comment="..."` are not counted towards the row number used for locating `header=#`. For example, if the first 5 lines of your file are blank, and the next 5 are comments, you would still set `header=1` to read the row that is on the 11-th line of the input source.
+    Lines skipped because they are blank/empty or via `comment="..."` are not counted towards the row number used for locating `header=#`. For example, if the first 5 lines of your file are blank, and the next 5 are comments, you would still set `header=1` to the row that is on the 11-th line of the input source as the header.
 
 ```jldoctest
 julia> using uCSV

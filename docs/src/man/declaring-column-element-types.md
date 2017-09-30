@@ -2,7 +2,7 @@
 
 ## Booleans
 
-If booleans are encoded as lower-case `trues` and `falses` in your dataset, the default parse function for booleans can be used. You can request this by setting the `type` argument.
+If booleans are encoded as lower-case `true` and `false` in your dataset, the default parse function for booleans can be used. You can request this by setting the `type` argument.
 
 Declaring all columns to be boolean
 ```jldoctest
@@ -61,7 +61,8 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Bool)))
 
 ```
 
-Specifying the text-encodings for your boolean values
+If the booleans in your dataset are encoding by anything other than `true` and `false`, you'll
+need to use the `encodings` argument to map the `String => Bool` conversions.
 ```jldoctest
 julia> using uCSV, DataFrames
 
@@ -259,7 +260,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 => x -> Date(x, "m/d/y
 
 ## DateTimes
 
-The same techniques demonstrated for other types also apply here. To make it interesting, let's try handling multiple encodings at once.
+The same techniques demonstrated for other types also apply here.
 ```jldoctest
 julia> using uCSV, DataFrames
 

@@ -1,4 +1,4 @@
-# Common formatting issues
+# Common Formatting Issues
 
 ## Dataset isn't UTF-8
 

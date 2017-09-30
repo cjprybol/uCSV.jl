@@ -1,4 +1,4 @@
-# Reading data from URLs
+# Reading Data from URLs
 
 Using the [HTTP.jl](https://github.com/JuliaWeb/HTTP.jl) package
 ```

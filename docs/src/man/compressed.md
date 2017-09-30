@@ -1,6 +1,6 @@
 # Reading Compressed Datasets
 
-Using the [TranscodingStreams.jl](https://github.com/bicycle1885/TranscodingStreams.jl#codec-packages) ecosystem of packages is the currently recommended approach, although other methods should work as well!
+Using the [TranscodingStreams.jl](https://github.com/bicycle1885/TranscodingStreams.jl#codec-packages) ecosystem of packages is currently the recommended approach, although other methods should work as well
 ```jldoctest
 julia> using uCSV, DataFrames, CodecZlib
 

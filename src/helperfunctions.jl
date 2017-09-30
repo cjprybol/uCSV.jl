@@ -90,7 +90,7 @@ function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
     end
 end
 
-"convert the data output by uCSV.read to a Matrix"
+"Convert the data output by uCSV.read to a `Matrix`. Column names are ignored"
 function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
     data = output[1]
     nrows = length(data)
@@ -102,7 +102,7 @@ function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
     return m
 end
 
-"convert the data output by uCSV.read to a Vector"
+"Convert the data output by uCSV.read to a `Vector`. Column names are ignored"
 function tovector(output::Tuple{Vector{Any}, Vector{String}})
     m = tomatrix(output)
     return reshape(m, reduce(*, size(m)))
