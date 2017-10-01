@@ -63,14 +63,14 @@ Take an input file or IO source and user-defined parsing rules and return:
     - default: `encodings=Dict{String, Any}()`
         - by default, the parser does not check for any reserved fields
     - frequently used:
-        - `encodings=Dict{String, Any}("" => null)`
-        - `encodings=Dict{String, Any}("NA" => null)`
-        - `encodings=Dict{String, Any}("N/A" => null)`
-        - `encodings=Dict{String, Any}("NULL" => null)`
-        - `encodings=Dict{String, Any}("TRUE" => true, "FALSE" => false)`
-        - `encodings=Dict{String, Any}("True" => true, "False" => false)`
-        - `encodings=Dict{String, Any}("T" => true, "F" => false)`
-        - `encodings=Dict{String, Any}("yes" => true, "no" => false)`
+        - `encodings=Dict("" => null)`
+        - `encodings=Dict("NA" => null)`
+        - `encodings=Dict("N/A" => null)`
+        - `encodings=Dict("NULL" => null)`
+        - `encodings=Dict("TRUE" => true, "FALSE" => false)`
+        - `encodings=Dict("True" => true, "False" => false)`
+        - `encodings=Dict("T" => true, "F" => false)`
+        - `encodings=Dict("yes" => true, "no" => false)`
         - ... your encodings here ...
             - can include any number of `String` => value mappings
             - note that if the user requests `quotes`, `escapes`, or `trimwhitespace`, these requests
@@ -187,7 +187,7 @@ function read(source::IO;
               quotes::Union{Char,Null}=null,
               escape::Union{Char,Null}=null,
               comment::Union{Char,String,Null}=null,
-              encodings::Dict{String,Any}=Dict{String, Any}(),
+              encodings::Dict{String,T} where T=Dict{String,Any}(),
               header::Union{Integer,Vector{String}}=0,
               skiprows::AbstractVector{Int}=Vector{Int}(),
               types::Union{T1,COLMAP{T1},Vector{T1}} where {T1<:Type}=Dict{Int,DataType}(),

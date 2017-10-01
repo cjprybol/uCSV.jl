@@ -73,7 +73,7 @@ Test Passed
 ### [Flights](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/2010_BSA_Carrier_PUF.csv.gz)
 ```julia
 carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
-@time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict{String,Any}("" => null), types=Dict(3 =>  Union{String, Null})));
+@time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict("" => null), types=Dict(3 =>  Union{String, Null})));
 @time df2 = CSV.read(GDS(open(carrier_file)), types=Dict(3 => Union{String, Null}, 4 => String, 5 => String, 8 => String));
 # I was unable to get TextParse.jl to read this file correctly
 @time df3 = textparse2DF(csvread(GDS(open(carrier_file)), pooledstrings=false, type_detect_rows=228990, nastrings=[""]));
@@ -84,7 +84,7 @@ carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.c
 ```julia
 julia> carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
 
-julia> @time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict{String,Any}("" => null), types=Dict(3 =>  Union{String, Null})));
+julia> @time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict("" => null), types=Dict(3 =>  Union{String, Null})));
  30.019385 seconds (97.68 M allocations: 4.060 GiB, 34.44% gc time)
 
 julia> @time df2 = CSV.read(GDS(open(carrier_file)), types=Dict(3 => Union{String, Null}, 4 => String, 5 => String, 8 => String));
@@ -160,7 +160,7 @@ true
 ### [Yellow Taxi](https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-01.csv)
 ```julia
 taxi_file = joinpath(homedir(), "Downloads", "yellow_tripdata_2015-01.csv");
-@time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null)));
+@time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict("" => null)));
 # CSV.read parses 6, 7, 10, and 11 incorrectly, again, all Float64 columns
 @time df2 = CSV.read(taxi_file, types=eltype.(df1.columns));
 # csvread
@@ -168,7 +168,7 @@ taxi_file = joinpath(homedir(), "Downloads", "yellow_tripdata_2015-01.csv");
 ```
 
 ```julia
-julia> @time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict{String,Any}("" => null)));
+julia> @time df1 = DataFrame(uCSV.read(taxi_file, header=1, typedetectrows=6, types=Dict(18=>Union{Float64, Null}), encodings=Dict("" => null)));
 224.209436 seconds (780.01 M allocations: 32.626 GiB, 33.88% gc time)
 
 julia> @time df2 = CSV.read(taxi_file, types=eltype.(df1.columns));

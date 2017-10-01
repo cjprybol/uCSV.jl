@@ -84,8 +84,8 @@ julia> s =
        No
        """;
 
-julia> trues = Dict{String, Any}(s => true for s in ["T", "True", "1", "yes", "y", "YES", "Yes"])
-Dict{String,Any} with 7 entries:
+julia> trues = Dict(s => true for s in ["T", "True", "1", "yes", "y", "YES", "Yes"])
+Dict{String,Bool} with 7 entries:
   "YES"  => true
   "True" => true
   "1"    => true
@@ -94,8 +94,8 @@ Dict{String,Any} with 7 entries:
   "Yes"  => true
   "y"    => true
 
-julia> falses = Dict{String, Any}(s => false for s in ["F", "False", "0", "no", "n", "NO", "No"])
-Dict{String,Any} with 7 entries:
+julia> falses = Dict(s => false for s in ["F", "False", "0", "no", "n", "NO", "No"])
+Dict{String,Bool} with 7 entries:
   "NO"    => false
   "No"    => false
   "False" => false

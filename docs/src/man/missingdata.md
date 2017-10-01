@@ -16,7 +16,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3))
 6×3 DataFrames.DataFrame
@@ -45,7 +45,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true))
 6×3 DataFrames.DataFrame
@@ -74,7 +74,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true, false]))
 6×3 DataFrames.DataFrame
@@ -103,7 +103,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, isnullable=Dict(2 => true)))
 6×3 DataFrames.DataFrame
@@ -133,7 +133,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, header=1, isnullable=Dict("b" => true)))
 6×3 DataFrames.DataFrame
@@ -162,7 +162,7 @@ julia> s =
        6,NA,6
        """;
 
-julia> encodings = Dict{String, Any}("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
+julia> encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null);
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, types=Dict(2 => Union{String, Null})))
 6×3 DataFrames.DataFrame
