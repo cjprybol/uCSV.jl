@@ -1607,593 +1607,768 @@ end
                                   [String, String, String, String, String, String, String, String, String]]
 end
 
-#
-# # TODO
-# #test on RDatasets files
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/loomis.csv.gz #NA's with bools
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/COUNT/titanic.csv.gz #categorical int
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/Clothing.csv.gz # quoted headers
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/Garch.csv.gz # encode and transform days of week
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/Grunfeld.csv.gz # parse year
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/Icecream.csv.gz # F -> C transform
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/MCAS.csv.gz # diverse data types
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/RetSchool.csv.gz # NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/TranspEq.csv.gz # encode states as two letters
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Ecdat/incomeInequality.csv.gz # like it
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/aspirin.csv.gz # ugly bibtex citations
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/birthdeathrates.csv.gz # recode countries
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/heptathlon.csv.gz # transform countries, names
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/meteo.csv.gz # year range
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/pottery.csv.gz # recode column names, transform to Kevlin
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/rearrests.csv.gz # convert to Freq Table
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/smoking.csv.gz # encode ugly bibtex
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HSAUR/voting.csv.gz # split into republican and democrat
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HistData/Jevons.csv.gz # multiple error encodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HistData/Minard.temp.csv.gz # strange date parsing
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HistData/Snow.pumps.csv.gz # missing values
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/HistData/Wheat.monarchs.csv.gz # dates and roman numerals
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/KMsurv/baboon.csv.gz # more dates
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/KMsurv/bcdeter.csv.gz # NA's after row detect
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/KMsurv/kidtran.csv.gz # boolean encodings and age groupings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/KMsurv/pneumon.csv.gz # lots of fun encodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/Boston.csv.gz
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/beav1.csv.gz # day time conversions
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/beav2.csv.gz # day time conversions
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/caith.csv.gz # freqtable fun
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/cpus.csv.gz # cpu names and convert memory
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/mammals.csv.gz # animal name conversions
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/newcomb.csv.gz # int parsing
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/npr1.csv.gz # make sure column one doesn't parse as int
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/road.csv.gz # state encodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/MASS/waders.csv.gz # read letter as char
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Zelig/SupremeCourt.csv.gz # nullable bit array
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Zelig/approval.csv.gz # month year
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/Zelig/immigration.csv.gz # lots of NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/adehabitatLT/albatross.csv.gz # fun dates and 0 in R2n followed by floats !!maybe drop!!
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/adehabitatLT/bear.csv.gz # same as above but even better
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/adehabitatLT/buffalo.csv.gz # again
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/adehabitatLT/whale.csv.gz # ugly again
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/boot/acme.csv.gz # month parse
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/boot/coal.csv.gz # what kind of date is this?
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/boot/neuro.csv.gz # lots of NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/car/Anscombe.csv.gz # state conversions
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/car/Depredations.csv.gz # convert lat long into something else
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/car/Florida.csv.gz # counties to lowercase & dots to spaces
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/car/Freedman.csv.gz # dots to spaces
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/cluster/animals.csv.gz
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/cluster/votes.repub.csv.gz # headers to dates
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/HairEyeColor.csv.gz # categorical recode
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/Titanic.csv.gz # categorical recode
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/UCBAdmissions.csv.gz # categorical recode
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/USJudgeRatings.csv.gz # judge name processing
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/VADeaths.csv.gz # age range
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/mtcars.csv.gz # have to
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/datasets/randu.csv.gz # exponential parsing of numerics
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/PD.csv.gz # so ugly
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/lukas.csv.gz # MF sex recoding
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/gap/mao.csv.gz # Int and Int/Int
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/economics.csv.gz # more dates
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/ggplot2/presidential.csv.gz # more dates
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/plyr/baseball.csv.gz # lots of NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/ca2006.csv.gz # true false encodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/presidentialElections.csv.gz # different true false
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/pscl/UKHouseOfCommons.csv.gz
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Reise.csv.gz # make headers and first column the same
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Schmid.csv.gz # another freqtable
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/Thurstone.csv.gz # another freqtable with recodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/bfi.csv.gz # late NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/psych/neo.csv.gz # freqtable recodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/robustbase/Animals2.csv.gz # unsure
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/robustbase/ambientNOxCH.csv.gz # scattered NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/robustbase/condroz.csv.gz # fun pH conversion
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/robustbase/education.csv.gz # state recodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/sem/Tests.csv.gz # late NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/survival/lung.csv.gz # 1-2 status and late NAs
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Bundesliga.csv.gz # year column & date column!
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Employment.csv.gz # employment length
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/PreSex.csv.gz # lots of encodings
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/RepVict.csv.gz # FreqTable
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
-#
-# https://github.com/johnmyleswhite/RDatasets.jl/raw/master/data/vcd/Lifeboats.csv.gz # dates
-# df = DataFrame(uCSV.read(GDS(open(f))))
-# @test names(df) == []
-# @test size(df) == (,)
-# @test typeof.(df.columns) == [Vector{T} for T in
-#                               []]
+
+@testset "RDatasets: COUNT/loomis" begin
+    f = "$(Pkg.dir("RDatasets"))/data/COUNT/loomis.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), header = 1, typedetectrows = 100, encodings=Dict{String, Any}("NA" => null), quotes='"'))
+    @test names(df) == [:AnVisits, :Gender, :Income, :Income1, :Income2, :Income3, :Income4, :Travel, :Travel1, :Travel2, :Travel3]
+    @test size(df) == (410, 11)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  fill(Union{Int, Null}, 11)]
+end
+
+@testset "RDatasets: COUNT/titanic" begin
+    f = "$(Pkg.dir("RDatasets"))/data/COUNT/titanic.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Survived, :Age, :Sex, :Class]
+    @test size(df) == (1316, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  fill(Int, 4)]
+end
+
+@testset "RDatasets: Ecdat/Clothing" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/Clothing.csv.gz" # quoted headers
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:TSales, :Sales, :Margin, :NOwn, :NFull, :NPart, :NAux, :HoursW, :HoursPW, :Inv1, :Inv2, :SSize, :Start]
+    @test size(df) == (400, 13)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Float64, Float64, Float64, Float64, Float64, Float64, Int, Float64, Float64, Float64, Int, Float64]]
+end
+
+@testset "RDatasets: Ecdat/Garch" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/Garch.csv.gz" # encode and transform days of week
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=2))
+    @test names(df) == [:Date, :Day, :DM, :DDM, :BP, :CD, :DY, :SF]
+    @test size(df) == (1867, 8)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, String, Float64, Union{Float64, Null}, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: Ecdat/Grunfeld" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/Grunfeld.csv.gz" # parse year
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Firm, :Year, :Inv, :Value, :Capital]
+    @test size(df) == (200, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: Ecdat/Icecream" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/Icecream.csv.gz" # F -> C transform
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Cons, :Income, :Price, :Temp]
+    @test size(df) == (30, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Int, Float64, Int]]
+end
+
+@testset "RDatasets: Ecdat/MCAS" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/MCAS.csv.gz" # diverse data types
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=34))
+    @test names(df) == [:Code, :Municipa, :District, :RegDay, :SpecNeed, :Bilingua, :OccupDay, :TotDay, :SPC, :SpecEd, :LnchPct, :TCHRatio, :PerCap, :TOTSC4, :TOTSC8, :AvgSalary, :PctEl]
+    @test size(df) == (220, 17)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, String, String, Int, Float64, Int, Int, Int, Union{Float64, Null}, Float64, Float64, Float64, Float64, Int, Union{Int, Null}, Union{Float64, Null}, Float64]]
+end
+
+@testset "RDatasets: Ecdat/RetSchool" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/RetSchool.csv.gz" # NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=2))
+    @test names(df) == [:Wage76, :Grade76, :Exp76, :Black, :South76, :SMSA76, :Region, :SMSA66, :MomDad14, :SinMom14, :NoDadEd, :NoMomEd, :DadEd, :MomEd, :FamEd, :Age76, :Col4]
+    @test size(df) == (5225, 17)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Int, Int, Int, Int, Int, Int, Int, Float64, Float64, Int, Int, Int]]
+end
+
+@testset "RDatasets: Ecdat/TranspEq" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/TranspEq.csv.gz" # encode states as two letters
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:State, :VA, :Capital, :Labor, :NFirm]
+    @test size(df) == (25, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Int]]
+end
+
+@testset "RDatasets: Ecdat/incomeInequality" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Ecdat/incomeInequality.csv.gz" # like it
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Year, :NumberThousands, :Quintile1, :Quintile2, :Median, :Quintile3, :Quintile4, :P95, :P90, :P95_1, :P99, :P99_5, :P99_9, :P99_99, :RealGDP_M, :GDPDeflator, :PopulationK, :RealGDPPerCap, :P95IRSVsCensus, :PersonsPerFamily, :RealGDPPerFamily, :MeanMedian]
+    @test size(df) == (66, 22)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Int, Int, Float64, Int, Int, Int, Int, Int, Int, Int, Int, Int, Float64, Float64, Int, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: HSAUR/aspirin" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/aspirin.csv.gz" # ugly bibtex citations
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Study, :DP, :TP, :DA, :TA]
+    @test size(df) == (7, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: HSAUR/birthdeathrates" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/birthdeathrates.csv.gz" # recode countries
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Country, :Birth, :Death]
+    @test size(df) == (69, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64]]
+end
+
+@testset "RDatasets: HSAUR/heptathlon" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/heptathlon.csv.gz" # transform countries, names
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Athlete, :Hurdles, :HighJump, :Shot, :Run200m, :LongJump, :Javelin, :Run800m, :Score]
+    @test size(df) == (25, 9)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Int]]
+end
+
+@testset "RDatasets: HSAUR/meteo" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/meteo.csv.gz" # year range
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Year, :RainNovDec, :Temp, :RainJuly, :Radiation, :Yield]
+    @test size(df) == (11, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Int, Float64]]
+end
+
+@testset "RDatasets: HSAUR/pottery" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/pottery.csv.gz" # recode column names, transform to Kevlin
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Al2O3, :Fe2O3, :MgO, :CaO, :Na2O, :K2O, :TiO2, :MnO, :BaO]
+    @test size(df) == (45, 9)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: HSAUR/rearrests" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/rearrests.csv.gz" # convert to Freq Table
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:AdultCourt, :Rearrest, :NoRearrest]
+    @test size(df) == (2, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int]]
+end
+
+@testset "RDatasets: HSAUR/smoking" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/smoking.csv.gz" # encode ugly bibtex
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Study, :QT, :TT, :QC, :TC]
+    @test size(df) == (26, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: HSAUR/voting" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HSAUR/voting.csv.gz" # split into republican and democrat
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Representative, :HuntR, :SandmanR, :HowardD, :ThompsonD, :FreylinghuysenR, :ForsytheR, :WidnallR, :RoeD, :HeltoskiD, :RodinoD, :MinishD, :RinaldoR, :MarazitiR, :DanielsD, :PattenD]
+    @test size(df) == (15, 16)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: HistData/Jevons" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HistData/Jevons.csv.gz" # multiple error encodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Actual, :Estimated, :Frequency, :Error]
+    @test size(df) == (50, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: HistData/Minard.temp" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HistData/Minard.temp.csv.gz" # strange date parsing
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Long, :Temp, :Days, :Date]
+    @test size(df) == (9, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Int, Int, String]]
+end
+
+@testset "RDatasets: HistData/Snow.pumps" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HistData/Snow.pumps.csv.gz" # missing values
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=3, encodings=Dict{String, Any}("" => null)))
+    @test names(df) == [:Pump, :Label, :X, :Y]
+    @test size(df) == (13, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Null, String}, Float64, Float64]]
+end
+
+@testset "RDatasets: HistData/Wheat.monarchs" begin
+    f = "$(Pkg.dir("RDatasets"))/data/HistData/Wheat.monarchs.csv.gz" # dates and roman numerals
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Name, :Start, :End, :Commonwealth]
+    @test size(df) == (12, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int]]
+end
+
+@testset "RDatasets: KMsurv/baboon" begin
+    f = "$(Pkg.dir("RDatasets"))/data/KMsurv/baboon.csv.gz" # more dates
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Date, :Time, :Observed]
+    @test size(df) == (152, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int]]
+end
+
+@testset "RDatasets: KMsurv/bcdeter" begin
+    f = "$(Pkg.dir("RDatasets"))/data/KMsurv/bcdeter.csv.gz" # NA's after row detect
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=59, encodings=Dict{String, Any}("NA" => null)))
+    @test names(df) == [:Lower, :Upper, :Treat]
+    @test size(df) == (95, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Int, Null}, Int]]
+end
+
+@testset "RDatasets: KMsurv/kidtran" begin
+    f = "$(Pkg.dir("RDatasets"))/data/KMsurv/kidtran.csv.gz" # boolean encodings and age groupings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Obs, :Time, :Delta, :Gender, :Race, :Age]
+    @test size(df) == (863, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: KMsurv/pneumon" begin
+    f = "$(Pkg.dir("RDatasets"))/data/KMsurv/pneumon.csv.gz" # lots of fun encodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:ChldAge, :Hospital, :MthAge, :Urban, :Alcohol, :Smoke, :Region, :Poverty, :BWeight, :Race, :Education, :NSibs, :WMonth, :SFMonth, :AgePn]
+    @test size(df) == (3470, 15)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: MASS/Boston" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/Boston.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Crim, :Zn, :Indus, :Chas, :NOx, :Rm, :Age, :Dis, :Rad, :Tax, :PTRatio, :Black, :LStat, :MedV]
+    @test size(df) == (506, 14)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64, Float64, Int, Float64, Float64, Float64, Float64, Int, Int, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: MASS/beav1" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/beav1.csv.gz" # day time conversions
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Day, :Time, :Temp, :Activ]
+    @test size(df) == (114, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Float64, Int]]
+end
+
+@testset "RDatasets: MASS/beav2" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/beav2.csv.gz" # day time conversions
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Day, :Time, :Temp, :Activ]
+    @test size(df) == (100, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Float64, Int]]
+end
+
+@testset "RDatasets: MASS/caith" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/caith.csv.gz" # freqtable fun
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Color, :Fair, :Red, :Medium, :Dark, :Black]
+    @test size(df) == (4, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: MASS/cpus" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/cpus.csv.gz" # cpu names and convert memory
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Name, :CycT, :MMin, :MMax, :Cach, :ChMin, :ChMax, :Perf, :EstPerf]
+    @test size(df) == (209, 9)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: MASS/mammals" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/mammals.csv.gz" # animal name conversions
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Mammal, :Body, :Brain]
+    @test size(df) == (62, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64]]
+end
+
+@testset "RDatasets: MASS/newcomb" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/newcomb.csv.gz" # int parsing
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:x1]
+    @test size(df) == (66, 1)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int]]
+end
+
+@testset "RDatasets: MASS/npr1" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/npr1.csv.gz" # make sure column one doesn't parse as int
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Sig, :X, :Y, :Perm, :Por]
+    @test size(df) == (104, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Int, Int]]
+end
+
+@testset "RDatasets: MASS/road" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/road.csv.gz" # state encodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:State, :Deaths, :Drivers, :PopDen, :Rural, :Temp, :Fuel]
+    @test size(df) == (26, 7)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Float64, Float64, Int, Float64]]
+end
+
+@testset "RDatasets: MASS/waders" begin
+    f = "$(Pkg.dir("RDatasets"))/data/MASS/waders.csv.gz" # read letter as char
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Letter, :S1, :S2, :S3, :S4, :S5, :S6, :S7, :S8, :S9, :S10, :S11, :S12, :S13, :S14, :S15, :S16, :S17, :S18, :S19]
+    @test size(df) == (15, 20)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: Zelig/SupremeCourt" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Zelig/SupremeCourt.csv.gz" # nullable bit array
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=23, encodings=Dict{String, Any}("NA" => null)))
+    @test names(df) == [:Rehnquist, :Stevens, :OConnor, :Scalia, :Kennedy, :Souter, :Thomas, :Ginsburg, :Breyer]
+    @test size(df) == (43, 9)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Int, Null}, Union{Int, Null}, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: Zelig/approval" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Zelig/approval.csv.gz" # month year
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Month, :Year, :Approve, :Disapprove, :Unsure, :SeptOct2001, :IraqWar, :AvgPrice]
+    @test size(df) == (65, 8)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Float64, Float64, Float64, Int, Int, Float64]]
+end
+
+@testset "RDatasets: Zelig/immigration" begin
+    f = "$(Pkg.dir("RDatasets"))/data/Zelig/immigration.csv.gz" # lots of NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=13, encodings=Dict{String, Any}("NA" => null)))
+    @test names(df) == [:IPIP, :Wage1992, :PrtyID, :Ideol, :Gender]
+    @test size(df) == (2485, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Int]]
+end
+
+@testset "RDatasets: adehabitatLT/albatross" begin
+    f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/albatross.csv.gz" # fun dates and 0 in R2n followed by floats !!maybe drop!!
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=930, encodings=Dict{String, Any}("NA" => null)))
+    @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
+    @test size(df) == (4400, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64, String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+end
+
+@testset "RDatasets: adehabitatLT/bear" begin
+    f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/bear.csv.gz" # same as above but even better
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=1157))
+    @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
+    @test size(df) == (1157, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Int, Null}, Union{Int, Null}, String, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+end
+
+@testset "RDatasets: adehabitatLT/buffalo" begin
+    f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/buffalo.csv.gz" # again
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=1309, encodings=Dict{String, Any}("NA" => null)))
+    @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst, :Act]
+    @test size(df) == (1309, 13)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, String, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Int, Union{Float64, Null}, Union{Float64, Null}, String, String, Union{Float64, Null}]]
+end
+
+@testset "RDatasets: adehabitatLT/whale" begin
+    f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/whale.csv.gz" # ugly again
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=181))
+    @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
+    @test size(df) == (181, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Float64, Null}, Union{Float64, Null}, String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+end
+
+@testset "RDatasets: boot/acme" begin
+    f = "$(Pkg.dir("RDatasets"))/data/boot/acme.csv.gz" # month parse
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Month, :Market, :Acme]
+    @test size(df) == (60, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64]]
+end
+
+@testset "RDatasets: boot/coal" begin
+    f = "$(Pkg.dir("RDatasets"))/data/boot/coal.csv.gz" # what kind of date is this?
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Date]
+    @test size(df) == (191, 1)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64]]
+end
+
+@testset "RDatasets: boot/neuro" begin
+    f = "$(Pkg.dir("RDatasets"))/data/boot/neuro.csv.gz" # lots of NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=469))
+    @test names(df) == [:V1, :V2, :V3, :V4, :V5, :V6]
+    @test size(df) == (469, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Float64, Null}, Union{Float64, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}]]
+end
+
+@testset "RDatasets: car/Anscombe" begin
+    f = "$(Pkg.dir("RDatasets"))/data/car/Anscombe.csv.gz" # state conversions
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:State, :Education, :Income, :Young, :Urban]
+    @test size(df) == (51, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Float64, Int]]
+end
+
+@testset "RDatasets: car/Depredations" begin
+    f = "$(Pkg.dir("RDatasets"))/data/car/Depredations.csv.gz" # convert lat long into something else
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Longitude, :Latitude, :Number, :Early, :Late]
+    @test size(df) == (434, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64, Int, Int, Int]]
+end
+
+@testset "RDatasets: car/Florida" begin
+    f = "$(Pkg.dir("RDatasets"))/data/car/Florida.csv.gz" # counties to lowercase & dots to spaces
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:District, :Gore, :Bush, :Buchanan, :Nader, :Browne, :Hagelin, :Harris, :McReynolds, :Moorehead, :Phillips, :Total]
+    @test size(df) == (67, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: car/Freedman" begin
+    f = "$(Pkg.dir("RDatasets"))/data/car/Freedman.csv.gz" # dots to spaces
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=3))
+    @test names(df) == [:City, :Population, :NonWhite, :Density, :Crime]
+    @test size(df) == (110, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Union{Int, Null}, Float64, Union{Int, Null}, Int]]
+end
+
+@testset "RDatasets: cluster/animals" begin
+    f = "$(Pkg.dir("RDatasets"))/data/cluster/animals.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=13))
+    @test names(df) == [:Animal, :War, :Fly, :Ver, :End, :Gro, :Hai]
+    @test size(df) == (20, 7)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Int]]
+end
+
+@testset "RDatasets: cluster/votes.repub" begin
+    f = "$(Pkg.dir("RDatasets"))/data/cluster/votes.repub.csv.gz" # headers to dates
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=5))
+    @test names(df) == [:State, :x1856, :x1860, :x1864, :x1868, :x1872, :x1876, :x1880, :x1884, :x1888, :x1892, :x1896, :x1900, :x1904, :x1908, :x1912, :x1916, :x1920, :x1924, :x1928, :x1932, :x1936, :x1940, :x1944, :x1948, :x1952, :x1956, :x1960, :x1964, :x1968, :x1972, :x1976]
+    @test size(df) == (50, 32)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: datasets/HairEyeColor" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/HairEyeColor.csv.gz" # categorical recode
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Hair, :Eye, :Sex, :Freq]
+    @test size(df) == (32, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, Int]]
+end
+
+@testset "RDatasets: datasets/Titanic" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/Titanic.csv.gz" # categorical recode
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Class, :Sex, :Age, :Survived, :Freq]
+    @test size(df) == (32, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, String, Int]]
+end
+
+@testset "RDatasets: datasets/attenu" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/attenu.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Event, :Mag, :Station, :Dist, :Accel]
+    @test size(df) == (182, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Float64, String, Float64, Float64]]
+end
+
+@testset "RDatasets: datasets/UCBAdmissions" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/UCBAdmissions.csv.gz" # categorical recode
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Admit, :Gender, :Dept, :Freq]
+    @test size(df) == (24, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, Int]]
+end
+
+@testset "RDatasets: datasets/USJudgeRatings" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/USJudgeRatings.csv.gz" # judge name processing
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Judge, :Cont, :Intg, :Dmnr, :Dilg, :Cfmg, :Deci, :Prep, :Fami, :Oral, :Writ, :Phys, :Rten]
+    @test size(df) == (43, 13)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: datasets/VADeaths" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/VADeaths.csv.gz" # age range
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Age, :RuralMale, :RuralFemale, :UrbanMale, :UrbanFemale]
+    @test size(df) == (5, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: datasets/mtcars" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/mtcars.csv.gz" # have to
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Model, :MPG, :Cyl, :Disp, :HP, :DRat, :WT, :QSec, :VS, :AM, :Gear, :Carb]
+    @test size(df) == (32, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Int, Float64, Int, Float64, Float64, Float64, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: datasets/randu" begin
+    f = "$(Pkg.dir("RDatasets"))/data/datasets/randu.csv.gz" # exponential parsing of numerics
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:X, :Y, :Z]
+    @test size(df) == (400, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: gap/PD" begin
+    f = "$(Pkg.dir("RDatasets"))/data/gap/PD.csv.gz" # so ugly
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("" => null, "NA" => null), typedetectrows=6))
+    @test names(df) == [:Lab, :APOE, :RS10506151, :RS10784486, :RS1365763, :RS1388598, :RS1491938, :RS1491941, :M770, :Int4, :SNCA, :ABC, :Diag, :Sex, :Race, :Aon, :Comments, :PD, :APOE234, :APOE2, :APOE3, :APOE4]
+    @test size(df) == (825, 22)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, String, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+end
+
+@testset "RDatasets: gap/lukas" begin
+    f = "$(Pkg.dir("RDatasets"))/data/gap/lukas.csv.gz" # MF sex recoding
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:ID, :Father, :Mother, :Sex]
+    @test size(df) == (85, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Int, Int, String]]
+end
+
+@testset "RDatasets: gap/mao" begin
+    f = "$(Pkg.dir("RDatasets"))/data/gap/mao.csv.gz" # Int and Int/Int
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=63))
+    @test names(df) == [:ID, :Type, :Gender, :Age, :AAO, :AAD, :UPDRS, :MAOAI2, :AI2Code, :MAOBI2, :BI2Code, :GTBEX3, :BEX3Code, :MAOAVNTR, :VNTRCode, :VNTRCod2, :MAOA31, :MAO31COD, :MAO31CO2]
+    @test size(df) == (340, 19)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, String, String, String, String, String, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}]]
+end
+
+@testset "RDatasets: ggplot2/economics" begin
+    f = "$(Pkg.dir("RDatasets"))/data/ggplot2/economics.csv.gz" # more dates
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Date, :PCE, :Pop, :PSavert, :UEmpMed, :Unemploy]
+    @test size(df) == (478, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Int, Float64, Float64, Int]]
+end
+
+@testset "RDatasets: ggplot2/presidential" begin
+    f = "$(Pkg.dir("RDatasets"))/data/ggplot2/presidential.csv.gz" # more dates
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Name, :Start, :End, :Party]
+    @test size(df) == (10, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, String]]
+end
+
+@testset "RDatasets: plyr/baseball" begin
+    f = "$(Pkg.dir("RDatasets"))/data/plyr/baseball.csv.gz" # lots of NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=953))
+    @test names(df) == [:NumID, :ID, :Year, :Stint, :Team, :LG, :G, :AB, :R, :H, :X2B, :X3B, :HR, :RBI, :SB, :CS, :BB, :SO, :IBB, :HBP, :SH, :SF, :GIDP]
+    @test size(df) == (21699, 23)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, String, Int, Int, String, Union{Null, String}, Int, Int, Int, Int, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+end
+
+@testset "RDatasets: pscl/ca2006" begin
+    f = "$(Pkg.dir("RDatasets"))/data/pscl/ca2006.csv.gz" # true false encodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=42))
+    @test names(df) == [:District, :D, :R, :Other, :IncParty, :IncName, :Open, :Contested, :Bush2004, :Kerry2004, :Other2004, :Bush2000, :Gore2000]
+    @test size(df) == (53, 13)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, String, Union{Null, String}, String, String, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: pscl/presidentialElections" begin
+    f = "$(Pkg.dir("RDatasets"))/data/pscl/presidentialElections.csv.gz" # different true false
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:State, :DemVote, :Year, :South]
+    @test size(df) == (1047, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Int, String]]
+end
+
+@testset "RDatasets: pscl/UKHouseOfCommons" begin
+    f = "$(Pkg.dir("RDatasets"))/data/pscl/UKHouseOfCommons.csv.gz"
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Constituency, :County, :Y1, :Y2, :Y1Lag, :Y2Lag, :ConInc, :LabInc, :LibInc, :V1, :V2, :V3]
+    @test size(df) == (521, 12)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, Float64, Float64, Float64, Float64, Int, Int, Int, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: psych/Reise" begin
+    f = "$(Pkg.dir("RDatasets"))/data/psych/Reise.csv.gz" # make headers and first column the same
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Variable, :Phone, :Routine, :Illness, :Listen, :Explain, :Respect, :Time, :Courtesy, :Helpful, :Happy, :Referral, :Necessary, :Delay, :Problem, :Help, :Paperwork]
+    @test size(df) == (16, 17)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: psych/Schmid" begin
+    f = "$(Pkg.dir("RDatasets"))/data/psych/Schmid.csv.gz" # another freqtable
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Variable, :V1, :V2, :V3, :V4, :V5, :V6, :V7, :V8, :V9, :V10, :V11, :V12]
+    @test size(df) == (12, 13)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: psych/Thurstone" begin
+    f = "$(Pkg.dir("RDatasets"))/data/psych/Thurstone.csv.gz" # another freqtable with recodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Variable, :Sentences, :Vocabulary, :SentCompletion, :FirstLetters, :FourLetterWords, :Suffixes, :LetterSeries, :Pedigrees, :LetterGroup]
+    @test size(df) == (9, 10)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: psych/bfi" begin
+    f = "$(Pkg.dir("RDatasets"))/data/psych/bfi.csv.gz" # late NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=525))
+    @test names(df) == [:Variable, :A1, :A2, :A3, :A4, :A5, :C1, :C2, :C3, :C4, :C5, :E1, :E2, :E3, :E4, :E5, :N1, :N2, :N3, :N4, :N5, :O1, :O2, :O3, :O4, :O5, :Gender, :Education, :Age]
+    @test size(df) == (2800, 29)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Int]]
+end
+
+@testset "RDatasets: psych/neo" begin
+    f = "$(Pkg.dir("RDatasets"))/data/psych/neo.csv.gz" # freqtable recodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Variable, :N1, :N2, :N3, :N4, :N5, :N6, :E1, :E2, :E3, :E4, :E5, :E6, :O1, :O2, :O3, :O4, :O5, :O6, :A1, :A2, :A3, :A4, :A5, :A6, :C1, :C2, :C3, :C4, :C5, :C6]
+    @test size(df) == (30, 31)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]]
+end
+
+@testset "RDatasets: robustbase/Animals2" begin
+    f = "$(Pkg.dir("RDatasets"))/data/robustbase/Animals2.csv.gz" # unsure
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Animal, :Body, :Brain]
+    @test size(df) == (65, 3)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Float64, Float64]]
+end
+
+@testset "RDatasets: robustbase/ambientNOxCH" begin
+    f = "$(Pkg.dir("RDatasets"))/data/robustbase/ambientNOxCH.csv.gz" # scattered NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=68))
+    @test names(df) == [:Date, :AD, :BA, :EF, :LA, :LU, :RE, :RI, :SE, :SI, :ST, :SU, :SZ, :ZG]
+    @test size(df) == (366, 14)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}]]
+end
+
+@testset "RDatasets: robustbase/condroz" begin
+    f = "$(Pkg.dir("RDatasets"))/data/robustbase/condroz.csv.gz" # fun pH conversion
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Ca, :pH]
+    @test size(df) == (428, 2)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Float64, Float64]]
+end
+
+@testset "RDatasets: robustbase/education" begin
+    f = "$(Pkg.dir("RDatasets"))/data/robustbase/education.csv.gz" # state recodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:State, :Region, :X1, :X2, :X3, :Y]
+    @test size(df) == (50, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: sem/Tests" begin
+    f = "$(Pkg.dir("RDatasets"))/data/sem/Tests.csv.gz" # late NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=19))
+    @test names(df) == [:X1, :X2, :X3, :Y1, :Y2, :Y3]
+    @test size(df) == (32, 6)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+end
+
+@testset "RDatasets: survival/lung" begin
+    f = "$(Pkg.dir("RDatasets"))/data/survival/lung.csv.gz" # 1-2 status and late NAs
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict{String, Any}("NA" => null), typedetectrows=206))
+    @test names(df) == [:Inst, :Time, :Status, :Age, :Sex, :PhECOG, :PhKarno, :PatKarno, :MealCal, :WtLoss]
+    @test size(df) == (228, 10)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [Union{Int, Null}, Int, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+end
+
+@testset "RDatasets: vcd/Bundesliga" begin
+    f = "$(Pkg.dir("RDatasets"))/data/vcd/Bundesliga.csv.gz" # year column & date column!
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:HomeTeam, :AwayTeam, :HomeGoals, :AwayGoals, :Round, :Year, :Date]
+    @test size(df) == (14018, 7)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, Int, Int, Int, Int, String]]
+end
+
+@testset "RDatasets: vcd/Employment" begin
+    f = "$(Pkg.dir("RDatasets"))/data/vcd/Employment.csv.gz" # employment length
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:EmploymentStatus, :EmploymentLength, :LayoffCause, :Freq]
+    @test size(df) == (24, 4)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, Int]]
+end
+
+@testset "RDatasets: vcd/PreSex" begin
+    f = "$(Pkg.dir("RDatasets"))/data/vcd/PreSex.csv.gz" # encodings
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:MaritalStatus, :ExtramaritalSex, :PremaritalSex, :Gender, :Freq]
+    @test size(df) == (16, 5)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, String, Int]]
+end
+
+@testset "RDatasets: vcd/RepVict" begin
+    f = "$(Pkg.dir("RDatasets"))/data/vcd/RepVict.csv.gz" # FreqTable
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Crime, :Rape, :Assault, :Robbery, :Pickpocket, :PersonalLarcency, :Burglary, :HouseholdLarceny, :AutoTheft]
+    @test size(df) == (8, 9)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, Int, Int, Int, Int, Int, Int, Int, Int]]
+end
+
+@testset "RDatasets: vcd/Lifeboats" begin
+    f = "$(Pkg.dir("RDatasets"))/data/vcd/Lifeboats.csv.gz" # dates
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1))
+    @test names(df) == [:Launch, :Side, :Boat, :Crew, :Men, :Women, :Total, :Cap]
+    @test size(df) == (18, 8)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, Int, Int, Int, Int, Int]]
+end
