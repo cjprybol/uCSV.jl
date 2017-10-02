@@ -9,7 +9,7 @@
 
 First, Install the package
 ```julia
-Pkg.clone("https://github.com/cjprybol/uCSV.jl")
+Pkg.add("uCSV")
 ```
 
 Then head on over to the [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://cjprybol.github.io/uCSV.jl/latest)!
