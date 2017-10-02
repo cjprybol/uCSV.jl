@@ -18,7 +18,7 @@ Then head on over to the [![](https://img.shields.io/badge/docs-latest-blue.svg)
 
 If you find a file you cannot parse after reading through the documentation and would like help, please file an issue!
 
-If you find a limitation in capability or a performance bottleneck that you can improve upon, or would like to improve upon the documentation, please open a PR!
+If you find a limitation in capability, a performance bottleneck, a lapse in the documentation, or anything else that you can improve upon, please open a PR!
 
 ## License
 
