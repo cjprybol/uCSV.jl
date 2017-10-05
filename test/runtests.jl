@@ -1110,6 +1110,20 @@ end
                                   [String, Int, Int, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Null, Null, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, String, Union{Null, String}]]
 end
 
+@testset "BOM.txt.gz" begin
+    f = joinpath(files, "BOM.txt.gz")
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, delim='\t'))
+    @test names(df) == [:TimeStamp, :V1, :V2, :V3, :V4, :V5, :V6, :V7, :V8, :V9, :V10, :V11, :V12, :V13, :V14, :V15, :V16, :V17, :V18, :V19, :V20, :V21, :V22, :V23, :V24, :V25, :V26, :V27, :V28, :V29, :V30, :V31]
+    @test size(df) == (4, 32)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]
+    df = DataFrame(uCSV.read(GDS(open(f)), delim='\t'))
+    @test names(df) == [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9, :x10, :x11, :x12, :x13, :x14, :x15, :x16, :x17, :x18, :x19, :x20, :x21, :x22, :x23, :x24, :x25, :x26, :x27, :x28, :x29, :x30, :x31, :x32]
+    @test size(df) == (5, 32)
+    @test typeof.(df.columns) == [Vector{T} for T in
+                                  [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]
+end
+
 @testset "character-deaths.csv.gz" begin
     f = joinpath(files, "character-deaths.csv.gz")
     df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => null), typedetectrows=100))

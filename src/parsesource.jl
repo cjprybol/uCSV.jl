@@ -18,6 +18,9 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             line = _readline(source, comment)
             currentline += 1
         end
+        if currentline == 1 && startswith(line, "\ufeff")
+            line = replace(line, "\ufeff", "")
+        end
         if currentline == header
             fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
             # e is true if `getfields` determined that we split a line prematurely on a quoted newline
@@ -45,6 +48,9 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     while !eof(source) && linesparsed < typedetectrows
         line = _readline(source, comment)
         currentline += 1
+        if currentline == 1 && startswith(line, "\ufeff")
+            line = replace(line, "\ufeff", "")
+        end
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
         if eof(source) && length(fields) == 1 && isempty(fields[1]) && currentline == 1
             return Any[], colnames
@@ -169,7 +175,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     # create typed data columns and fill the columns with data parsed while detecting types
     n = size(vals, 1)
-    data = [haskey(index2coltype, i) ? index2coltype[i]{T}(n) : Vector{T}(n) for (i, T) in enumerate(eltypes)]
+    data = [get(index2coltype, i, Vector){T}(n) for (i, T) in enumerate(eltypes)]
     for (col, T) in enumerate(eltypes)
         if T == String
             for (row, val) in enumerate(vals[:, col])

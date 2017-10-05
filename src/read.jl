@@ -199,7 +199,7 @@ function read(source::IO;
               skipmalformed::Bool=false,
               trimwhitespace::Bool=false)
 
-        reserved = filter(x -> !isnull(x), [delim, quotes, escape, comment])
+        reserved = [x for x in (delim, quotes, escape, comment) if !isnull(x)]
         if !isnull(quotes) && isequal(quotes, escape)
             @assert length(unique(string.(reserved))) == length(reserved) - 1
         else
