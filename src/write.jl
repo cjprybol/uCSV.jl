@@ -1,9 +1,9 @@
 """
     function write(output;
-                   header=null,
-                   data=null,
+                   header=missing,
+                   data=missing,
                    delim=',',
-                   quotes=null,
+                   quotes=missing,
                    quotetypes=AbstractString)
 
 Write a dataset to disk or IO
@@ -13,11 +13,11 @@ Write a dataset to disk or IO
     - the path on disk or IO where you want to write to
 - `header`
     - the column names for the data to `output`
-    - default: `header=null`
+    - default: `header=missing`
         - no header is written
 - `data`
     - the dataset to write to `output`
-    - default: `data=null`
+    - default: `data=missing`
         - no data is written
 - `delim`
     - the delimiter to seperate fields by
@@ -29,12 +29,12 @@ Write a dataset to disk or IO
         - `delim='|'`
 - `quotes`
     - the quoting character to use when writing fields
-    - default: `quotes=null`
+    - default: `quotes=missing`
         - fields are not quoted by default, and fields are written using julia's
           default string-printing mechanisms
 - `quotetypes::Type`
     - when quoting fields, quote only columns where `coltype <: quotetypes`
-        - columns of type `Union{<:quotetypes, Null}` will also be quoted
+        - columns of type `Union{<:quotetypes, Missing}` will also be quoted
     - default: `quotetypes=AbsractString`
         - only the header and fields where `coltype <: AbsractString` will be quoted
     - frequently used:
@@ -43,16 +43,16 @@ Write a dataset to disk or IO
 """
 
 function write(fullpath::Union{String, IO};
-               header::Union{Vector{String}, Null}=null,
-               data::Union{Vector{<:Any}, Null}=null,
+               header::Union{Vector{String}, Missing}=missing,
+               data::Union{Vector{<:Any}, Missing}=missing,
                delim::Union{Char, String}=',',
-               quotes::Union{Char, Null}=null,
+               quotes::Union{Char, Missing}=missing,
                quotetypes::Type=AbstractString)
-    if isnull(header) && isnull(data)
+    if ismissing(header) && ismissing(data)
         throw(ArgumentError("no header or data provided"))
-    elseif !isnull(data)
+    elseif !ismissing(data)
         @assert length(unique(length.(data))) == 1
-        if !isnull(header)
+        if !ismissing(header)
             @assert length(header) == length(data)
         end
     end
@@ -67,21 +67,21 @@ function write(fullpath::Union{String, IO};
     else
         f = open(fullpath, "w")
     end
-    if !isnull(header)
-        if !isnull(quotes)
+    if !ismissing(header)
+        if !ismissing(quotes)
             for i in eachindex(header)
                 header[i] = string(quotes, header[i], quotes)
             end
         end
         Base.write(f, join(header, delim) * "\n")
     end
-    if !isnull(data)
+    if !ismissing(data)
         numcols = length(data)
         eltypes = eltype.(data)
         for row in 1:length(data[1])
             rowvalues = [string(data[col][row]) for col in 1:numcols]
-            if !isnull(quotes)
-                for i in find(e -> e <: quotetypes || (e != Null && e <: Union{quotetypes, Null}), eltypes)
+            if !ismissing(quotes)
+                for i in find(e -> e <: quotetypes || (e != Missing && e <: Union{quotetypes, Missing}), eltypes)
                     rowvalues[i] = string(quotes, rowvalues[i], quotes)
                 end
             end
@@ -95,7 +95,7 @@ end
     function write(output,
                    df;
                    delim=',',
-                   quotes=null,
+                   quotes=missing,
                    quotetypes=AbstractString)
 
 Write a DataFrame to disk or IO

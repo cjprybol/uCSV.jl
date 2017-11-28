@@ -1,7 +1,7 @@
-using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Nulls, CategoricalArrays
+using uCSV, HTTP, CodecZlib, DataFrames, RDatasets, Base.Test, Missings, CategoricalArrays
 # TODO make this @__FILE__
 files = joinpath(Pkg.dir("uCSV"), "test", "data")
-GDS = GzipDecompressionStream
+GDS = GzipDecompressorStream
 const ≅ = isequal
 
 @testset "Float64 Matrix" begin
@@ -138,7 +138,7 @@ end
     1,2,3
     """
     e = @test_throws ArgumentError uCSV.read(IOBuffer(s), types=Dict("col2" => Float64))
-    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided with column names as Strings that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. allowmissing\n  3. coltypes\n  4. colparsers\nwas provided with column names as Strings that cannot be mapped to column indices because column names have either not been provided or have not been parsed.\n"
 
     s =
     """
@@ -153,8 +153,8 @@ end
     1,2,3
     ,,
     """
-    e = @test_throws ErrorException uCSV.read(IOBuffer(s), encodings=Dict("" => null))
-    @test e.value.msg == "Error parsing field \"\" in row 2, column 1.\nUnable to push value null to column of type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 1 via the `types` argument\n  3. manually specify a parser for column 1 via the `parsers` argument\n  4. if the value is null, setting the `isnullable` argument\n"
+    e = @test_throws ErrorException uCSV.read(IOBuffer(s), encodings=Dict("" => missing))
+    @test e.value.msg == "Error parsing field \"\" in row 2, column 1.\nUnable to push value missing to column of type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 1 via the `types` argument\n  3. manually specify a parser for column 1 via the `parsers` argument\n  4. if the value is missing, setting the `allowmissing` argument\n"
 
     e = @test_throws ArgumentError uCSV.read(IOBuffer(s), header=["col1"])
     @test e.value.msg == "user-provided header String[\"col1\"] has 1 columns, but 3 were detected the in dataset.\n"
@@ -556,8 +556,8 @@ end
 end
 
 
-@testset "Nulls" begin
-    encodings = Dict("" => null, "\"\"" => null, "NULL" => null, "NA" => null)
+@testset "Missings" begin
+    encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA" => missing)
     s =
     """
     1,hey,1
@@ -569,30 +569,30 @@ end
     """
     data, header = uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3)
     @test data ≅ Any[[1, 2, 3, 4, 5, 6],
-                     ["hey", "you", null, null, null, null],
+                     ["hey", "you", missing, missing, missing, missing],
                      [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=true)
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=true)
     @test data ≅ Any[[1, 2, 3, 4, 5, 6],
-                     ["hey", "you", null, null, null, null],
+                     ["hey", "you", missing, missing, missing, missing],
                      [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=Dict(2 => true))
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=Dict(2 => true))
     @test data ≅ Any[[1, 2, 3, 4, 5, 6],
-                     ["hey", "you", null, null, null, null],
+                     ["hey", "you", missing, missing, missing, missing],
                      [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    data, header = uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true, false])
+    data, header = uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=[false, true, false])
     @test data ≅ Any[[1, 2, 3, 4, 5, 6],
-                     ["hey", "you", null, null, null, null],
+                     ["hey", "you", missing, missing, missing, missing],
                      [1, 2, 3, 4, 5, 6]]
     @test header == Vector{String}()
 
-    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), encodings=encodings, isnullable=[false, true])
-    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. isnullable\n  3. coltypes\n  4. colparsers\nwas provided as a vector and the length of this vector (2) != the number of detected columns (3).\n"
+    e = @test_throws ArgumentError uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=[false, true])
+    @test e.value.msg == "One of the following user-supplied arguments:\n  1. types\n  2. allowmissing\n  3. coltypes\n  4. colparsers\nwas provided as a vector and the length of this vector (2) != the number of detected columns (3).\n"
 end
 
 # consider re-enabling
@@ -831,7 +831,7 @@ end
 end
 
 @testset "Read Iris" begin
-    df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.gz"))), header=1))
+    df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(files, "iris.csv.gz"))), header=1))
     @test head(df, 1) == DataFrame(Id = 1,
                                    SepalLengthCm = 5.1,
                                    SepalWidthCm = 3.5,
@@ -843,7 +843,7 @@ end
 
 if Sys.WORD_SIZE == 64 && !is_windows()
     @testset "Write Iris" begin
-        df = DataFrame(uCSV.read(GzipDecompressionStream(open(joinpath(files, "iris.csv.gz"))), header=1))
+        df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(files, "iris.csv.gz"))), header=1))
         outpath = joinpath(Pkg.dir("uCSV"), "test", "temp.txt")
         uCSV.write(outpath, header = string.(names(df)), data = df.columns)
         @test hash(read(open(outpath), String)) == 0x2f6e8bca9d9f43ed
@@ -881,14 +881,14 @@ if Sys.WORD_SIZE == 64 && !is_windows()
         uCSV.write(outpath, df, quotes='"', quotetypes=Real)
         @test hash(read(open(outpath), String)) == 0xd6276abc14f24a7a
 
-        df[6] = convert(Vector{Union{String, Null}}, df[6]);
-        df[6][2:3] = null;
+        df[6] = convert(Vector{Union{String, Missing}}, df[6]);
+        df[6][2:3] = missing;
         uCSV.write(outpath, df, quotes='"')
-        @test hash(read(open(outpath), String)) == 0x6d24228c68ac3006
+        @test hash(read(open(outpath), String)) == 0x76b9d2c96afcb277
 
-        df[6] = nulls(size(df, 1));
+        df[6] = missings(size(df, 1));
         uCSV.write(outpath, df, quotes='"')
-        @test hash(read(open(outpath), String)) == 0x364c6121680456b7
+        @test hash(read(open(outpath), String)) == 0xd9a646014e50fb75
 
         rm(outpath)
     end
@@ -897,7 +897,7 @@ end
 @testset "2010_BSA_Carrier_PUF.csv.gz" begin
     f = joinpath(files, "2010_BSA_Carrier_PUF.csv.gz")
     e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
-    @test e.value.msg == "Error parsing field \"A0425\" in row 2, column 4.\nUnable to parse field \"A0425\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.\n"
+    @test e.value.msg == "Error parsing field \"A0425\" in row 2, column 4.\nUnable to parse field \"A0425\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the intended value is missing or another special encoding, setting the `encodings` argument appropriately.\n"
     df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2))
     @test names(df) == [:BENE_SEX_IDENT_CD, :BENE_AGE_CAT_CD, :CAR_LINE_ICD9_DGNS_CD, :CAR_LINE_HCPCS_CD, :CAR_LINE_BETOS_CD, :CAR_LINE_SRVC_CNT, :CAR_LINE_PRVDR_TYPE_CD, :CAR_LINE_CMS_TYPE_SRVC_CD, :CAR_LINE_PLACE_OF_SRVC_CD, :CAR_HCPS_PMT_AMT, :CAR_LINE_CNT]
     @test size(df) == (2801660, 11)
@@ -940,7 +940,7 @@ end
 @testset "FL_insurance_sample.csv.gz" begin
     f = joinpath(files, "FL_insurance_sample.csv.gz")
     e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
-    @test e.value.msg == "Error parsing field \"1322376.3\" in row 2, column 4.\nUnable to parse field \"1322376.3\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.\n"
+    @test e.value.msg == "Error parsing field \"1322376.3\" in row 2, column 4.\nUnable to parse field \"1322376.3\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 2\n  2. manually specify the element-type of column 4 via the `types` argument\n  3. manually specify a parser for column 4 via the `parsers` argument\n  4. if the intended value is missing or another special encoding, setting the `encodings` argument appropriately.\n"
     df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2439))
     @test names(df) == [:policyID, :statecode, :county, :eq_site_limit, :hu_site_limit, :fl_site_limit, :fr_site_limit, :tiv_2011, :tiv_2012, :eq_site_deductible, :hu_site_deductible, :fl_site_deductible, :fr_site_deductible, :point_latitude, :point_longitude, :line, :construction, :point_granularity]
     @test size(df) == (36634, 18)
@@ -951,14 +951,14 @@ end
 @testset "Fielding.csv.gz" begin
     f = joinpath(files, "Fielding.csv.gz")
     e = @test_throws ErrorException uCSV.read(GDS(open(f)), header=1)
-    @test e.value.msg == "Error parsing field \"\" in row 3460, column 11.\nUnable to parse field \"\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 3460\n  2. manually specify the element-type of column 11 via the `types` argument\n  3. manually specify a parser for column 11 via the `parsers` argument\n  4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.\n"
-    e = @test_throws ArgumentError uCSV.read(GDS(open(f)), header=1, isnullable=Dict(11 => true))
-    @test e.value.msg == "Nullable columns have been requested but the user has not specified any strings to interpret as null values via the `encodings` argument.\n"
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, types=Dict(8 => Int, 9 => Int, 14 => Int, 15 => Int, 16 => Int, 17 => Int, 18 => Int), encodings=Dict("" => null), isnullable=Dict(10 => true, 11 => true, 12 => true, 13 => true)))
+    @test e.value.msg == "Error parsing field \"\" in row 3460, column 11.\nUnable to parse field \"\" as type $Int\nPossible fixes may include:\n  1. set `typedetectrows` to a value >= 3460\n  2. manually specify the element-type of column 11 via the `types` argument\n  3. manually specify a parser for column 11 via the `parsers` argument\n  4. if the intended value is missing or another special encoding, setting the `encodings` argument appropriately.\n"
+    e = @test_throws ArgumentError uCSV.read(GDS(open(f)), header=1, allowmissing=Dict(11 => true))
+    @test e.value.msg == "Columns allowing missing values have been requested but the user has not specified any strings to interpret as missing values via the `encodings` argument.\n"
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, types=Dict(8 => Int, 9 => Int, 14 => Int, 15 => Int, 16 => Int, 17 => Int, 18 => Int), encodings=Dict("" => missing), allowmissing=Dict(10 => true, 11 => true, 12 => true, 13 => true)))
     @test names(df) == [:playerID, :yearID, :stint, :teamID, :lgID, :POS, :G, :GS, :InnOuts, :PO, :A, :E, :DP, :PB, :WP, :SB, :CS, :ZR]
     @test size(df) == (167938, 18)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Int, Int, String, String, String, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+                                  [String, Int, Int, String, String, String, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}]]
 end
 
 @testset "Gaz_zcta_national.txt.gz" begin
@@ -1009,41 +1009,41 @@ end
 
 @testset "Most-Recent-Cohorts-Scorecard-Elements.csv.gz" begin
     f = joinpath(files, "Most-Recent-Cohorts-Scorecard-Elements.csv.gz")
-    @test_warn "Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead." uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => null, "PrivacySuppressed" => null), typedetectrows=7283, quotes='"', skiprows=2:typemax(Int))
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => null, "PrivacySuppressed" => null), typedetectrows=200, quotes='"', isnullable=true))
+    @test_warn "Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `allowmissing` arguments instead." uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => missing, "PrivacySuppressed" => missing), typedetectrows=7283, quotes='"', skiprows=2:typemax(Int))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => missing, "PrivacySuppressed" => missing), typedetectrows=200, quotes='"', allowmissing=true))
     @test names(df) == [Symbol("UNITID"), :OPEID, :OPEID6, :INSTNM, :CITY, :STABBR, :INSTURL, :NPCURL, :HCM2, :PREDDEG, :CONTROL, :LOCALE, :HBCU, :PBI, :ANNHI, :TRIBAL, :AANAPII, :HSI, :NANTI, :MENONLY, :WOMENONLY, :RELAFFIL, :SATVR25, :SATVR75, :SATMT25, :SATMT75, :SATWR25, :SATWR75, :SATVRMID, :SATMTMID, :SATWRMID, :ACTCM25, :ACTCM75, :ACTEN25, :ACTEN75, :ACTMT25, :ACTMT75, :ACTWR25, :ACTWR75, :ACTCMMID, :ACTENMID, :ACTMTMID, :ACTWRMID, :SAT_AVG, :SAT_AVG_ALL, :PCIP01, :PCIP03, :PCIP04, :PCIP05, :PCIP09, :PCIP10, :PCIP11, :PCIP12, :PCIP13, :PCIP14, :PCIP15, :PCIP16, :PCIP19, :PCIP22, :PCIP23, :PCIP24, :PCIP25, :PCIP26, :PCIP27, :PCIP29, :PCIP30, :PCIP31, :PCIP38, :PCIP39, :PCIP40, :PCIP41, :PCIP42, :PCIP43, :PCIP44, :PCIP45, :PCIP46, :PCIP47, :PCIP48, :PCIP49, :PCIP50, :PCIP51, :PCIP52, :PCIP54, :DISTANCEONLY, :UGDS, :UGDS_WHITE, :UGDS_BLACK, :UGDS_HISP, :UGDS_ASIAN, :UGDS_AIAN, :UGDS_NHPI, :UGDS_2MOR, :UGDS_NRA, :UGDS_UNKN, :PPTUG_EF, :CURROPER, :NPT4_PUB, :NPT4_PRIV, :NPT41_PUB, :NPT42_PUB, :NPT43_PUB, :NPT44_PUB, :NPT45_PUB, :NPT41_PRIV, :NPT42_PRIV, :NPT43_PRIV, :NPT44_PRIV, :NPT45_PRIV, :PCTPELL, :RET_FT4, :RET_FTL4, :RET_PT4, :RET_PTL4, :PCTFLOAN, :UG25ABV, :MD_EARN_WNE_P10, :GT_25K_P6, :GRAD_DEBT_MDN_SUPP, :GRAD_DEBT_MDN10YR_SUPP, :RPY_3YR_RT_SUPP, :C150_L4_POOLED_SUPP, :C150_4_POOLED_SUPP]
     @test size(df) == (7703, 122)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}]]
+                                  [Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}]]
 end
 
 @testset "OP_DTL_OWNRSHP_PGYR2016_P06302017.csv.gz" begin
     f = joinpath(files, "OP_DTL_OWNRSHP_PGYR2016_P06302017.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => null), isnullable=true, typedetectrows=10, types=Dict(14 => Int)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => missing), allowmissing=true, typedetectrows=10, types=Dict(14 => Int)))
     @test names(df) == [:Change_Type, :Physician_Profile_ID, :Physician_First_Name, :Physician_Middle_Name, :Physician_Last_Name, :Physician_Name_Suffix, :Recipient_Primary_Business_Street_Address_Line1, :Recipient_Primary_Business_Street_Address_Line2, :Recipient_City, :Recipient_State, :Recipient_Zip_Code, :Recipient_Country, :Recipient_Province, :Recipient_Postal_Code, :Physician_Primary_Type, :Physician_Specialty, :Record_ID, :Program_Year, :Total_Amount_Invested_USDollars, :Value_of_Interest, :Terms_of_Interest, :Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name, :Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID, :Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_Name, :Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_State, :Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_Country, :Dispute_Status_for_Publication, :Interest_Held_by_Physician_or_an_Immediate_Family_Member, :Payment_Publication_Date]
     @test size(df) == (3640, 29)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Null, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Float64, Null}, Union{Float64, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}]]
+                                  [Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Missing, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "PIREPs.csv.gz" begin
     f = joinpath(files, "PIREPs.csv.gz")
     # TODO read receipt_time & observation_time as datetimes
-    df = DataFrame(uCSV.read(GDS(open(f)), header=6, encodings=Dict("" => null), typedetectrows=1000))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=6, encodings=Dict("" => missing), typedetectrows=1000))
     @test names(df) == [:receipt_time, :observation_time, :mid_point_assumed, :no_time_stamp, :flt_lvl_range, :above_ground_level_indicated, :no_flt_lvl, :bad_location, :aircraft_ref, :latitude, :longitude, :altitude_ft_msl, :sky_cover, :cloud_base_ft_msl, :cloud_top_ft_msl, :sky_cover_1, :cloud_base_ft_msl_1, :cloud_top_ft_msl_1, :turbulence_type, :turbulence_intensity, :turbulence_base_ft_msl, :turbulence_top_ft_msl, :turbulence_freq, :turbulence_type_1, :turbulence_intensity_1, :turbulence_base_ft_msl_1, :turbulence_top_ft_msl_1, :turbulence_freq_1, :icing_type, :icing_intensity, :icing_base_ft_msl, :icing_top_ft_msl, :icing_type_1, :icing_intensity_1, :icing_base_ft_msl_1, :icing_top_ft_msl_1, :visibility_statute_mi, :wx_string, :temp_c, :wind_dir_degrees, :wind_speed_kt, :vert_gust_kt, :report_type, :raw_text]
     @test size(df) == (1000, 44)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, String, Union{Null, String}, Null, Union{Null, String}, Null, Union{Null, String}, Union{Null, String}, String, Float64, Float64, Int, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Null, Union{Null, String}, Null, Null, Null, Null, Null, Union{Null, String}, Union{Null, String}, Null, Null, Null, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Null, String, String]]
+                                  [String, String, Union{Missing, String}, Missing, Union{Missing, String}, Missing, Union{Missing, String}, Union{Missing, String}, String, Float64, Float64, Int, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Missing, Union{Missing, String}, Missing, Missing, Missing, Missing, Missing, Union{Missing, String}, Union{Missing, String}, Missing, Missing, Missing, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Missing, String, String]]
 end
 
 @testset "STATIONINFO.csv.gz" begin
     f = joinpath(files, "STATIONINFO.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=6, trimwhitespace=true, encodings=Dict("" => null), typedetectrows=3, skipmalformed=true))
-    df = DataFrame(uCSV.read(GDS(open(f)), header=6, trimwhitespace=true, encodings=Dict("" => null), types=Dict(2 => Union{Int, Null}), skipmalformed=true))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=6, trimwhitespace=true, encodings=Dict("" => missing), typedetectrows=3, skipmalformed=true))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=6, trimwhitespace=true, encodings=Dict("" => missing), types=Dict(2 => Union{Int, Missing}), skipmalformed=true))
     @test names(df) == [:station_id, :wmo_id, :latitude, :longitude, :elevation_m, :site, :state, :country, :site_type]
     @test size(df) == (813, 9)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Int, Null}, Float64, Float64, Float64, String, String, String, String]]
+                                  [String, Union{Int, Missing}, Float64, Float64, Float64, String, String, String, String]]
 end
 
 @testset "SacramentocrimeJanuary2006.csv.gz" begin
@@ -1076,38 +1076,38 @@ end
 
 @testset "TechCrunchcontinentalUSA.csv.gz" begin
     f = joinpath(files, "TechCrunchcontinentalUSA.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', types=Dict(3 => Union{Int, Null}, 4 => Union{String, Null}, 5 => Union{String, Null}), encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', types=Dict(3 => Union{Int, Missing}, 4 => Union{String, Missing}, 5 => Union{String, Missing}), encodings=Dict("" => missing)))
     @test names(df) == [:permalink, :company, :numEmps, :category, :city, :state, :fundedDate, :raisedAmt, :raisedCurrency, :round]
     @test size(df) == (1460, 10)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, String, Union{Int, Null}, Union{Null, String}, Union{Null, String}, String, String, Int, String, String]]
+                                  [String, String, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, String, String, Int, String, String]]
 end
 
 @testset "WellIndex_20160811.csv.gz" begin
     f = joinpath(files, "WellIndex_20160811.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', isnullable = Dict(6 => true, 8 => true, 10 => true, 15 => true, 21 => true, 27 => true), encodings=Dict("" => null), types=Dict(1 => Int64), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', allowmissing = Dict(6 => true, 8 => true, 10 => true, 15 => true, 21 => true, 27 => true), encodings=Dict("" => missing), types=Dict(1 => Int64), typedetectrows=100))
     @test names(df) == [:APINo, :FileNo, :CurrentOperator, :CurrentWellName, :LeaseName, :LeaseNumber, :OriginalOperator, :OriginalWellName, :SpudDate, :TD, :CountyName, :Township, :Range, :Section, :QQ, :Footages, :FieldName, :ProducedPools, :OilWaterGasCums, :IPTDateOilWaterGas, :Wellbore, :Latitude, :Longitude, :WellType, :WellStatus, :CTB, :WellStatusDate]
     @test size(df) == (33445, 27)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int64, Int, String, String, String, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Int, Null}, String, String, String, Int, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Float64, Null}, Union{Float64, Null}, String, String, Union{Int, Null}, Union{Null, String}]]
+                                  [Int64, Int, String, String, String, Union{Missing, String}, String, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, String, String, String, Int, Union{Missing, String}, Union{Missing, String}, String, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Float64, Missing}, Union{Float64, Missing}, String, String, Union{Int, Missing}, Union{Missing, String}]]
 end
 
 @testset "baseball.csv.gz" begin
     f = joinpath(files, "baseball.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=35, encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=35, encodings=Dict("" => missing)))
     @test names(df) == [:Rk, :Year, :Age, :Tm, :Lg, Symbol(""), :W, :L, Symbol("W-L%"), :G, :Finish, :Wpost, :Lpost, Symbol("W-L%post"), :_1]
     @test size(df) == (35, 15)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Null, String}]]
+                                  [Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Missing, String}]]
 end
 
 @testset "battles.csv.gz" begin
     f = joinpath(files, "battles.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', encodings=Dict("" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', escape='"', encodings=Dict("" => missing), typedetectrows=100))
     @test names(df) == [:name, :year, :battle_number, :attacker_king, :defender_king, :attacker_1, :attacker_2, :attacker_3, :attacker_4, :defender_1, :defender_2, :defender_3, :defender_4, :attacker_outcome, :battle_type, :major_death, :major_capture, :attacker_size, :defender_size, :attacker_commander, :defender_commander, :summer, :location, :region, :note]
     @test size(df) == (38, 25)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Int, Int, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Null, Null, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, String, Union{Null, String}]]
+                                  [String, Int, Int, Union{Missing, String}, Union{Missing, String}, String, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Missing, Missing, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, String, Union{Missing, String}]]
 end
 
 @testset "BOM.txt.gz" begin
@@ -1126,20 +1126,20 @@ end
 
 @testset "character-deaths.csv.gz" begin
     f = joinpath(files, "character-deaths.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => missing), typedetectrows=100))
     @test names(df) == [:Name, :Allegiances, Symbol("Death Year"), Symbol("Book of Death"), Symbol("Death Chapter"), Symbol("Book Intro Chapter"), :Gender, :Nobility, :GoT, :CoK, :SoS, :FfC, :DwD]
     @test size(df) == (917, 13)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, String, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Int, Int, Int, Int, Int, Int]]
+                                  [String, String, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Int, Int, Int, Int, Int, Int]]
 end
 
 @testset "character-predictions.csv.gz" begin
     f = joinpath(files, "character-predictions.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => missing), typedetectrows=100))
     @test names(df) == [Symbol("S.No"), :actual, :pred, :alive, :plod, :name, :title, :male, :culture, :dateOfBirth, :DateoFdeath, :mother, :father, :heir, :house, :spouse, :book1, :book2, :book3, :book4, :book5, :isAliveMother, :isAliveFather, :isAliveHeir, :isAliveSpouse, :isMarried, :isNoble, :age, :numDeadRelations, :boolDeadRelations, :isPopular, :popularity, :isAlive]
     @test size(df) == (1946, 33)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Int, Int, Float64, Float64, String, Union{Null, String}, Int, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Int, Int, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Int, Union{Int, Null}, Int, Int, Int, Float64, Int]]
+                                  [Int, Int, Int, Float64, Float64, String, Union{Missing, String}, Int, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Int, Int, Int, Int, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Int, Union{Int, Missing}, Int, Int, Int, Float64, Int]]
 end
 
 @testset "comma_in_quotes.csv.gz" begin
@@ -1171,29 +1171,29 @@ end
 
 @testset "empty.csv" begin
     f = joinpath(files, "empty.csv")
-    df = DataFrame(uCSV.read(f, header=1, typedetectrows=2, quotes='"', encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(f, header=1, typedetectrows=2, quotes='"', encodings=Dict("" => missing)))
     @test names(df) == [:a, :b, :c]
     @test size(df) == (2, 3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Null, String}, Union{Null, String}]]
+                                  [Int, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "empty.csv.gz" begin
     f = joinpath(files, "empty.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2, quotes='"', encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2, quotes='"', encodings=Dict("" => missing)))
     @test names(df) == [:a, :b, :c]
     @test size(df) == (2, 3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Null, String}, Union{Null, String}]]
+                                  [Int, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "empty_crlf.csv.gz" begin
     f = joinpath(files, "empty_crlf.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2, quotes='"', encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=2, quotes='"', encodings=Dict("" => missing)))
     @test names(df) == [:a, :b, :c]
     @test size(df) == (2, 3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Null, String}, Union{Null, String}]]
+                                  [Int, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "escaped_quotes.csv.gz" begin
@@ -1207,11 +1207,11 @@ end
 
 @testset "final-cjr-quality-pr.csv.gz" begin
     f = joinpath(files, "final-cjr-quality-pr.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("N/A" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("N/A" => missing), typedetectrows=100))
     @test names(df) == [Symbol("HOSPITAL NAME"), Symbol("PROVIDER ID"), :MSA, Symbol("MSA TITLE"), Symbol("HCAHPS HLMR"), Symbol("HCAHPS START DATE"), Symbol("HCAHPS END DATE"), Symbol("HCAHPS FOOTNOTE"), Symbol("COMP-HIP-KNEE"), Symbol("COMP START DATE"), Symbol("COMP END DATE"), Symbol("COMP FOOTNOTE"), :PRO, Symbol("PRO START DATE"), Symbol("PRO END DATE"), Symbol("PRO FOOTNOTE ")]
     @test size(df) == (794, 16)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Int, Int, String, Union{Float64, Null}, String, String, String, Union{Float64, Null}, String, String, String, String, String, String, String]]
+                                  [String, Int, Int, String, Union{Float64, Missing}, String, String, String, Union{Float64, Missing}, String, String, String, String, String, String, String]]
 end
 
 @testset "hospice-compare-casper-aspen-contacts.csv.gz" begin
@@ -1261,20 +1261,20 @@ end
 
 @testset "latest.csv.gz" begin
     f = joinpath(files, "latest.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), encodings=Dict("\\N" => null), typedetectrows=100))
+    df = DataFrame(uCSV.read(GDS(open(f)), encodings=Dict("\\N" => missing), typedetectrows=100))
     @test names(df) == [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9, :x10, :x11, :x12, :x13, :x14, :x15, :x16, :x17, :x18, :x19, :x20, :x21, :x22, :x23, :x24, :x25]
     @test size(df) == (1000, 25)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, String, Int, Int, String, Int, String, Int, String, String, Int, String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Float64, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}]]
+                                  [String, String, Int, Int, String, Int, String, Int, String, String, Int, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Float64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Float64, Union{Float64, Missing}, Union{Float64, Missing}]]
 end
 
 @testset "movie_metadata.csv.gz" begin
     f = joinpath(files, "movie_metadata.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => null), typedetectrows=100, isnullable=Dict(2 => true, 5 => true, 7 => true, 8 => true, 11 => true, 25 => true), types=Dict(9 => Int64, 23 => Int64)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes='"', encodings=Dict("" => missing), typedetectrows=100, allowmissing=Dict(2 => true, 5 => true, 7 => true, 8 => true, 11 => true, 25 => true), types=Dict(9 => Int64, 23 => Int64)))
     @test names(df) == [:color, :director_name, :num_critic_for_reviews, :duration, :director_facebook_likes, :actor_3_facebook_likes, :actor_2_name, :actor_1_facebook_likes, :gross, :genres, :actor_1_name, :movie_title, :num_voted_users, :cast_total_facebook_likes, :actor_3_name, :facenumber_in_poster, :plot_keywords, :movie_imdb_link, :num_user_for_reviews, :language, :country, :content_rating, :budget, :title_year, :actor_2_facebook_likes, :imdb_score, :aspect_ratio, :movie_facebook_likes]
     @test size(df) == (5043, 28)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int64, Null}, String, Union{Null, String}, String, Int, Int, Union{Null, String}, Union{Int, Null}, Union{Null, String}, String, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int64, Null}, Union{Int, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Int]]
+                                  [Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int64, Missing}, String, Union{Missing, String}, String, Int, Int, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, String, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Int64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Float64, Union{Float64, Missing}, Int]]
 end
 
 @testset "newlines.csv.gz" begin
@@ -1307,11 +1307,11 @@ end
 
 @testset "payment-year-2017.csv.gz" begin
     f = joinpath(files, "payment-year-2017.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes = '"', escape='"', encodings=Dict("" => null, "-" => null, "No Score" => null, "N/A" => null), typedetectrows=1000, isnullable=true))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, quotes = '"', escape='"', encodings=Dict("" => missing, "-" => missing, "No Score" => missing, "N/A" => missing), typedetectrows=1000, allowmissing=true))
     @test names(df) == [Symbol("Facility Name"), Symbol("CMS Certification Number (CCN)"), Symbol("Alternate CCN 1"), Symbol("Address 1"), Symbol("Address 2"), :City, :State, Symbol("Zip Code"), :Network, Symbol("VAT Catheter Measure Score"), Symbol("VAT Catheter Achievement Measure Rate"), Symbol("Number of Patients Included in VAT Catheter Measure Score Achievement Period"), Symbol("VAT Catheter Achievement Period Numerator"), Symbol("VAT Catheter Achievement Period Denominator"), Symbol("VAT Catheter Improvement Measure Rate"), Symbol("VAT Catheter Improvement Period Numerator"), Symbol("VAT Catheter Improvement Period Denominator"), Symbol("VAT Catheter Measure Score Applied"), Symbol("VAT Fistula Measure Score"), Symbol("VAT Fistula Achievement Measure Rate"), Symbol("Number of Patients Included in VAT Fistula Measure Score Achievement Period"), Symbol("VAT Fistula Achievement Period Numerator"), Symbol("VAT Fistula Achievement Period Denominator"), Symbol("VAT Fistula Improvement Measure Rate"), Symbol("VAT Fistula Improvement Period Numerator"), Symbol("VAT Fistula Improvement Period Denominator"), Symbol("VAT Fistula Measure Score Applied"), Symbol("VAT Combined Measure Score"), Symbol("National Avg VAT Combined Measure Score"), Symbol("Kt/V Adult Hemodialysis Measure Score"), Symbol("Kt/V Adult Hemodialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Adult Hemodialysis Measure Score Achievement Period"), Symbol("Kt/V Adult Hemodialysis Achievement Period Numerator"), Symbol("Kt/V Adult Hemodialysis Achievement Period Denominator"), Symbol("Kt/V Adult Hemodialysis Improvement Measure Rate"), Symbol("Kt/V Adult Hemodialysis Improvement Period Numerator"), Symbol("Kt/V Adult Hemodialysis Improvement Period Denominator"), Symbol("Kt/V Adult Hemodialysis Measure Score Applied"), Symbol("Kt/V Adult Peritoneal Dialysis Measure Score"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Adult Peritoneal Dialysis Measure Score Achievement Period"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Period Numerator"), Symbol("Kt/V Adult Peritoneal Dialysis Achievement Period Denominator"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Measure Rate"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Period Numerator"), Symbol("Kt/V Adult Peritoneal Dialysis Improvement Period Denominator"), Symbol("Kt/V Adult Peritoneal Dialysis Measure Score Applied"), Symbol("Kt/V Pediatric Hemodialysis Measure Score"), Symbol("Kt/V Pediatric Hemodialysis Achievement Measure Rate"), Symbol("Number of Patients Included in  Kt/V Pediatric Hemodialysis Measure Score Achievement Period"), Symbol("Kt/V Pediatric Hemodialysis Achievement Period Numerator"), Symbol("Kt/V Pediatric Hemodialysis Achievement Period Denominator"), Symbol("Kt/V Pediatric Hemodialysis Improvement Measure Rate"), Symbol("Kt/V Pediatric Hemodialysis Improvement Period Numerator"), Symbol("Kt/V Pediatric Hemodialysis Improvement Period Denominator"), Symbol("Kt/V Pediatric Hemodialysis Measure Score Applied"), Symbol("Kt/V Dialysis Adequacy Combined Measure Score"), Symbol("National Avg Kt/V Dialysis Adequacy Combined Measure Score"), Symbol("Hypercalcemia Measure Score"), Symbol("Hypercalcemia Achievement Measure Rate"), Symbol("Number of Patients Included in Hypercalcemia Measure Score Achievement Period"), Symbol("Hypercalcemia Achievement Period Numerator"), Symbol("Hypercalcemia Achievement Period Denominator"), Symbol("Hypercalcemia Improvement Measure Rate"), Symbol("Hypercalcemia Improvement Period Numerator"), Symbol("Hypercalcemia Improvement Period Denominator"), Symbol("Hypercalcemia Measure Score Applied"), Symbol("NHSN Measure Score"), Symbol("NHSN Achievement Measure Ratio"), Symbol("Number of Patients Included in NHSN Measure Score Achievement Period"), Symbol("NHSN Observed Achievement Period Numerator"), Symbol("NHSN Predicted Achievement Period Denominator"), Symbol("NHSN Improvement Measure Ratio"), Symbol("NHSN Observed Improvement Period Numerator"), Symbol("NHSN Predicted Improvement Period Denominator"), Symbol("NHSN Measure Score Applied"), Symbol("ICH CAHPS Admin Score"), Symbol("Mineral Metabolism Reporting Score"), Symbol("Anemia Management Reporting Score"), Symbol("SRR Measure Score"), Symbol("SRR Achievement Measure Ratio"), Symbol("SRR Index Discharges"), Symbol("SRR Achievement Period Numerator"), Symbol("SRR Achievement Period Denominator"), Symbol("SRR Improvement Measure Ratio"), Symbol("SRR Improvement Period Numerator"), Symbol("SRR Improvement Period Denominator"), Symbol("SRR Measure Score Applied"), Symbol("Total Performance Score"), Symbol("PY2017 Payment Reduction Percentage"), Symbol("CMS Certification Date"), Symbol("Ownership as of December 31, 2015"), Symbol("Date of Ownership Record Update")]
     @test size(df) == (6550, 93)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Float64, Null}, Union{Null, String}, Union{Int, Null}, Union{Float64, Null}, Union{Null, String}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Int, Null}, Union{Float64, Null}, Union{Null, String}, Union{Int, Null}, Union{Float64, Null}, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}]]
+                                  [Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Float64, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Float64, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Int, Missing}, Union{Float64, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Float64, Missing}, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "quotes_and_newlines.csv.gz" begin
@@ -1481,20 +1481,20 @@ end
 
 @testset "test_missing_value.csv.gz" begin
     f = joinpath(files, "test_missing_value.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("" => null), typedetectrows=2))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("" => missing), typedetectrows=2))
     @test names(df) == [:col1, :col2, :col3]
     @test size(df) == (3,3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Float64, Union{Float64, Null}, Float64]]
+                                  [Float64, Union{Float64, Missing}, Float64]]
 end
 
 @testset "test_missing_value_NULL.csv.gz" begin
     f = joinpath(files, "test_missing_value_NULL.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => null), typedetectrows=2))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, encodings=Dict("NULL" => missing), typedetectrows=2))
     @test names(df) == [:col1, :col2, :col3]
     @test size(df) == (3,3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Float64, Union{Float64, Null}, Float64]]
+                                  [Float64, Union{Float64, Missing}, Float64]]
 end
 
 @testset "test_mixed_date_formats.csv.gz" begin
@@ -1576,22 +1576,22 @@ end
                                   [Int]]
 end
 
-@testset "test_tab_null_empty.txt.gz" begin
-    f = joinpath(files, "test_tab_null_empty.txt.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', typedetectrows=3, encodings=Dict("" => null)))
+@testset "test_tab_missing_empty.txt.gz" begin
+    f = joinpath(files, "test_tab_missing_empty.txt.gz")
+    df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', typedetectrows=3, encodings=Dict("" => missing)))
     @test names(df) == [:x1, :x2, :x3, :x4]
     @test size(df) == (3, 4)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Null, String}, String, String]]
+                                  [String, Union{Missing, String}, String, String]]
 end
 
-@testset "test_tab_null_string.txt.gz" begin
-    f = joinpath(files, "test_tab_null_string.txt.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', typedetectrows=3, encodings=Dict("NULL" => null)))
+@testset "test_tab_missing_string.txt.gz" begin
+    f = joinpath(files, "test_tab_missing_string.txt.gz")
+    df = DataFrame(uCSV.read(GDS(open(f)), delim='\t', typedetectrows=3, encodings=Dict("NULL" => missing)))
     @test names(df) == [:x1, :x2, :x3, :x4]
     @test size(df) == (3, 4)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Null, String}, String, String]]
+                                  [String, Union{Missing, String}, String, String]]
 end
 
 @testset "test_windows.csv.gz" begin
@@ -1624,11 +1624,11 @@ end
 
 @testset "RDatasets: COUNT/loomis" begin
     f = "$(Pkg.dir("RDatasets"))/data/COUNT/loomis.csv.gz"
-    df = DataFrame(uCSV.read(GDS(open(f)), header = 1, typedetectrows = 100, encodings=Dict("NA" => null), quotes='"'))
+    df = DataFrame(uCSV.read(GDS(open(f)), header = 1, typedetectrows = 100, encodings=Dict("NA" => missing), quotes='"'))
     @test names(df) == [:AnVisits, :Gender, :Income, :Income1, :Income2, :Income3, :Income4, :Travel, :Travel1, :Travel2, :Travel3]
     @test size(df) == (410, 11)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  fill(Union{Int, Null}, 11)]
+                                  fill(Union{Int, Missing}, 11)]
 end
 
 @testset "RDatasets: COUNT/titanic" begin
@@ -1651,11 +1651,11 @@ end
 
 @testset "RDatasets: Ecdat/Garch" begin
     f = "$(Pkg.dir("RDatasets"))/data/Ecdat/Garch.csv.gz" # encode and transform days of week
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=2))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=2))
     @test names(df) == [:Date, :Day, :DM, :DDM, :BP, :CD, :DY, :SF]
     @test size(df) == (1867, 8)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, String, Float64, Union{Float64, Null}, Float64, Float64, Float64, Float64]]
+                                  [Int, String, Float64, Union{Float64, Missing}, Float64, Float64, Float64, Float64]]
 end
 
 @testset "RDatasets: Ecdat/Grunfeld" begin
@@ -1678,20 +1678,20 @@ end
 
 @testset "RDatasets: Ecdat/MCAS" begin
     f = "$(Pkg.dir("RDatasets"))/data/Ecdat/MCAS.csv.gz" # diverse data types
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=34))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=34))
     @test names(df) == [:Code, :Municipa, :District, :RegDay, :SpecNeed, :Bilingua, :OccupDay, :TotDay, :SPC, :SpecEd, :LnchPct, :TCHRatio, :PerCap, :TOTSC4, :TOTSC8, :AvgSalary, :PctEl]
     @test size(df) == (220, 17)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, String, String, Int, Float64, Int, Int, Int, Union{Float64, Null}, Float64, Float64, Float64, Float64, Int, Union{Int, Null}, Union{Float64, Null}, Float64]]
+                                  [Int, String, String, Int, Float64, Int, Int, Int, Union{Float64, Missing}, Float64, Float64, Float64, Float64, Int, Union{Int, Missing}, Union{Float64, Missing}, Float64]]
 end
 
 @testset "RDatasets: Ecdat/RetSchool" begin
     f = "$(Pkg.dir("RDatasets"))/data/Ecdat/RetSchool.csv.gz" # NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=2))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=2))
     @test names(df) == [:Wage76, :Grade76, :Exp76, :Black, :South76, :SMSA76, :Region, :SMSA66, :MomDad14, :SinMom14, :NoDadEd, :NoMomEd, :DadEd, :MomEd, :FamEd, :Age76, :Col4]
     @test size(df) == (5225, 17)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Int, Int, Int, Int, Int, Int, Int, Float64, Float64, Int, Int, Int]]
+                                  [Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Union{Int, Missing}, Int, Int, Int, Int, Int, Int, Int, Float64, Float64, Int, Int, Int]]
 end
 
 @testset "RDatasets: Ecdat/TranspEq" begin
@@ -1804,11 +1804,11 @@ end
 
 @testset "RDatasets: HistData/Snow.pumps" begin
     f = "$(Pkg.dir("RDatasets"))/data/HistData/Snow.pumps.csv.gz" # missing values
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=3, encodings=Dict("" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=3, encodings=Dict("" => missing)))
     @test names(df) == [:Pump, :Label, :X, :Y]
     @test size(df) == (13, 4)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Null, String}, Float64, Float64]]
+                                  [Int, Union{Missing, String}, Float64, Float64]]
 end
 
 @testset "RDatasets: HistData/Wheat.monarchs" begin
@@ -1831,11 +1831,11 @@ end
 
 @testset "RDatasets: KMsurv/bcdeter" begin
     f = "$(Pkg.dir("RDatasets"))/data/KMsurv/bcdeter.csv.gz" # NA's after row detect
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=59, encodings=Dict("NA" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=59, encodings=Dict("NA" => missing)))
     @test names(df) == [:Lower, :Upper, :Treat]
     @test size(df) == (95, 3)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Int, Null}, Int]]
+                                  [Int, Union{Int, Missing}, Int]]
 end
 
 @testset "RDatasets: KMsurv/kidtran" begin
@@ -1947,12 +1947,12 @@ end
 end
 
 @testset "RDatasets: Zelig/SupremeCourt" begin
-    f = "$(Pkg.dir("RDatasets"))/data/Zelig/SupremeCourt.csv.gz" # nullable bit array
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=23, encodings=Dict("NA" => null)))
+    f = "$(Pkg.dir("RDatasets"))/data/Zelig/SupremeCourt.csv.gz" # missing value bit array
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=23, encodings=Dict("NA" => missing)))
     @test names(df) == [:Rehnquist, :Stevens, :OConnor, :Scalia, :Kennedy, :Souter, :Thomas, :Ginsburg, :Breyer]
     @test size(df) == (43, 9)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Int, Null}, Union{Int, Null}, Int, Int, Int, Int, Int, Int]]
+                                  [Int, Union{Int, Missing}, Union{Int, Missing}, Int, Int, Int, Int, Int, Int]]
 end
 
 @testset "RDatasets: Zelig/approval" begin
@@ -1966,47 +1966,47 @@ end
 
 @testset "RDatasets: Zelig/immigration" begin
     f = "$(Pkg.dir("RDatasets"))/data/Zelig/immigration.csv.gz" # lots of NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=13, encodings=Dict("NA" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=13, encodings=Dict("NA" => missing)))
     @test names(df) == [:IPIP, :Wage1992, :PrtyID, :Ideol, :Gender]
     @test size(df) == (2485, 5)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Int]]
+                                  [Union{Int, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int]]
 end
 
 @testset "RDatasets: adehabitatLT/albatross" begin
     f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/albatross.csv.gz" # fun dates and 0 in R2n followed by floats !!maybe drop!!
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=930, encodings=Dict("NA" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=930, encodings=Dict("NA" => missing)))
     @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
     @test size(df) == (4400, 12)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Float64, Float64, String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+                                  [Float64, Float64, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Float64, Union{Float64, Missing}, Union{Float64, Missing}, String, String]]
 end
 
 @testset "RDatasets: adehabitatLT/bear" begin
     f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/bear.csv.gz" # same as above but even better
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=1157))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=1157))
     @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
     @test size(df) == (1157, 12)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Union{Int, Null}, String, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+                                  [Union{Int, Missing}, Union{Int, Missing}, String, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, String, String]]
 end
 
 @testset "RDatasets: adehabitatLT/buffalo" begin
     f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/buffalo.csv.gz" # again
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=1309, encodings=Dict("NA" => null)))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, typedetectrows=1309, encodings=Dict("NA" => missing)))
     @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst, :Act]
     @test size(df) == (1309, 13)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Int, String, Union{Int, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Int, Union{Float64, Null}, Union{Float64, Null}, String, String, Union{Float64, Null}]]
+                                  [Int, Int, String, Union{Int, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Int, Union{Float64, Missing}, Union{Float64, Missing}, String, String, Union{Float64, Missing}]]
 end
 
 @testset "RDatasets: adehabitatLT/whale" begin
     f = "$(Pkg.dir("RDatasets"))/data/adehabitatLT/whale.csv.gz" # ugly again
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=181))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=181))
     @test names(df) == [:X, :Y, :Date, :Dx, :Dy, :Dist, :Dt, :R2n, :AbsAngle, :RelAngle, :ID, :Burst]
     @test size(df) == (181, 12)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Float64, Null}, Union{Float64, Null}, String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Int, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, String, String]]
+                                  [Union{Float64, Missing}, Union{Float64, Missing}, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Int, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, String, String]]
 end
 
 @testset "RDatasets: boot/acme" begin
@@ -2029,11 +2029,11 @@ end
 
 @testset "RDatasets: boot/neuro" begin
     f = "$(Pkg.dir("RDatasets"))/data/boot/neuro.csv.gz" # lots of NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=469))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=469))
     @test names(df) == [:V1, :V2, :V3, :V4, :V5, :V6]
     @test size(df) == (469, 6)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Float64, Null}, Union{Float64, Null}, Float64, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}]]
+                                  [Union{Float64, Missing}, Union{Float64, Missing}, Float64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}]]
 end
 
 @testset "RDatasets: car/Anscombe" begin
@@ -2065,29 +2065,29 @@ end
 
 @testset "RDatasets: car/Freedman" begin
     f = "$(Pkg.dir("RDatasets"))/data/car/Freedman.csv.gz" # dots to spaces
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=3))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=3))
     @test names(df) == [:City, :Population, :NonWhite, :Density, :Crime]
     @test size(df) == (110, 5)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Int, Null}, Float64, Union{Int, Null}, Int]]
+                                  [String, Union{Int, Missing}, Float64, Union{Int, Missing}, Int]]
 end
 
 @testset "RDatasets: cluster/animals" begin
     f = "$(Pkg.dir("RDatasets"))/data/cluster/animals.csv.gz"
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=13))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=13))
     @test names(df) == [:Animal, :War, :Fly, :Ver, :End, :Gro, :Hai]
     @test size(df) == (20, 7)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Int]]
+                                  [String, Int, Int, Int, Union{Int, Missing}, Union{Int, Missing}, Int]]
 end
 
 @testset "RDatasets: cluster/votes.repub" begin
     f = "$(Pkg.dir("RDatasets"))/data/cluster/votes.repub.csv.gz" # headers to dates
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=5))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=5))
     @test names(df) == [:State, :x1856, :x1860, :x1864, :x1868, :x1872, :x1876, :x1880, :x1884, :x1888, :x1892, :x1896, :x1900, :x1904, :x1908, :x1912, :x1916, :x1920, :x1924, :x1928, :x1932, :x1936, :x1940, :x1944, :x1948, :x1952, :x1956, :x1960, :x1964, :x1968, :x1972, :x1976]
     @test size(df) == (50, 32)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Float64, Float64, Float64, Float64, Float64]]
+                                  [String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Float64, Float64, Float64, Float64, Float64]]
 end
 
 @testset "RDatasets: datasets/HairEyeColor" begin
@@ -2164,11 +2164,11 @@ end
 
 @testset "RDatasets: gap/PD" begin
     f = "$(Pkg.dir("RDatasets"))/data/gap/PD.csv.gz" # so ugly
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("" => null, "NA" => null), typedetectrows=6))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("" => missing, "NA" => missing), typedetectrows=6))
     @test names(df) == [:Lab, :APOE, :RS10506151, :RS10784486, :RS1365763, :RS1388598, :RS1491938, :RS1491941, :M770, :Int4, :SNCA, :ABC, :Diag, :Sex, :Race, :Aon, :Comments, :PD, :APOE234, :APOE2, :APOE3, :APOE4]
     @test size(df) == (825, 22)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, String, Union{Null, String}, String, Union{Null, String}, Union{Int, Null}, Union{Null, String}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+                                  [String, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, String, Union{Missing, String}, String, Union{Missing, String}, Union{Int, Missing}, Union{Missing, String}, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}]]
 end
 
 @testset "RDatasets: gap/lukas" begin
@@ -2182,11 +2182,11 @@ end
 
 @testset "RDatasets: gap/mao" begin
     f = "$(Pkg.dir("RDatasets"))/data/gap/mao.csv.gz" # Int and Int/Int
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=63))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=63))
     @test names(df) == [:ID, :Type, :Gender, :Age, :AAO, :AAD, :UPDRS, :MAOAI2, :AI2Code, :MAOBI2, :BI2Code, :GTBEX3, :BEX3Code, :MAOAVNTR, :VNTRCode, :VNTRCod2, :MAOA31, :MAO31COD, :MAO31CO2]
     @test size(df) == (340, 19)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, String, String, String, String, String, String, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}, Union{Null, String}]]
+                                  [String, Int, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, String, String, String, String, String, String, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}, Union{Missing, String}]]
 end
 
 @testset "RDatasets: ggplot2/economics" begin
@@ -2209,20 +2209,20 @@ end
 
 @testset "RDatasets: plyr/baseball" begin
     f = "$(Pkg.dir("RDatasets"))/data/plyr/baseball.csv.gz" # lots of NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=953))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=953))
     @test names(df) == [:NumID, :ID, :Year, :Stint, :Team, :LG, :G, :AB, :R, :H, :X2B, :X3B, :HR, :RBI, :SB, :CS, :BB, :SO, :IBB, :HBP, :SH, :SF, :GIDP]
     @test size(df) == (21699, 23)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, String, Int, Int, String, Union{Null, String}, Int, Int, Int, Int, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+                                  [Int, String, Int, Int, String, Union{Missing, String}, Int, Int, Int, Int, Int, Int, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}]]
 end
 
 @testset "RDatasets: pscl/ca2006" begin
     f = "$(Pkg.dir("RDatasets"))/data/pscl/ca2006.csv.gz" # true false encodings
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=42))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=42))
     @test names(df) == [:District, :D, :R, :Other, :IncParty, :IncName, :Open, :Contested, :Bush2004, :Kerry2004, :Other2004, :Bush2000, :Gore2000]
     @test size(df) == (53, 13)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, String, Union{Null, String}, String, String, Int, Int, Int, Int, Int]]
+                                  [Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, String, Union{Missing, String}, String, String, Int, Int, Int, Int, Int]]
 end
 
 @testset "RDatasets: pscl/presidentialElections" begin
@@ -2272,11 +2272,11 @@ end
 
 @testset "RDatasets: psych/bfi" begin
     f = "$(Pkg.dir("RDatasets"))/data/psych/bfi.csv.gz" # late NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=525))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=525))
     @test names(df) == [:Variable, :A1, :A2, :A3, :A4, :A5, :C1, :C2, :C3, :C4, :C5, :E1, :E2, :E3, :E4, :E5, :N1, :N2, :N3, :N4, :N5, :O1, :O2, :O3, :O4, :O5, :Gender, :Education, :Age]
     @test size(df) == (2800, 29)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Int, Union{Int, Null}, Int]]
+                                  [Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Int, Union{Int, Missing}, Int]]
 end
 
 @testset "RDatasets: psych/neo" begin
@@ -2299,11 +2299,11 @@ end
 
 @testset "RDatasets: robustbase/ambientNOxCH" begin
     f = "$(Pkg.dir("RDatasets"))/data/robustbase/ambientNOxCH.csv.gz" # scattered NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=68))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=68))
     @test names(df) == [:Date, :AD, :BA, :EF, :LA, :LU, :RE, :RI, :SE, :SI, :ST, :SU, :SZ, :ZG]
     @test size(df) == (366, 14)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [String, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}, Union{Float64, Null}]]
+                                  [String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}]]
 end
 
 @testset "RDatasets: robustbase/condroz" begin
@@ -2326,20 +2326,20 @@ end
 
 @testset "RDatasets: sem/Tests" begin
     f = "$(Pkg.dir("RDatasets"))/data/sem/Tests.csv.gz" # late NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=19))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=19))
     @test names(df) == [:X1, :X2, :X3, :Y1, :Y2, :Y3]
     @test size(df) == (32, 6)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+                                  [Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}]]
 end
 
 @testset "RDatasets: survival/lung" begin
     f = "$(Pkg.dir("RDatasets"))/data/survival/lung.csv.gz" # 1-2 status and late NAs
-    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => null), typedetectrows=206))
+    df = DataFrame(uCSV.read(GDS(open(f)), quotes='"', header=1, encodings=Dict("NA" => missing), typedetectrows=206))
     @test names(df) == [:Inst, :Time, :Status, :Age, :Sex, :PhECOG, :PhKarno, :PatKarno, :MealCal, :WtLoss]
     @test size(df) == (228, 10)
     @test typeof.(df.columns) == [Vector{T} for T in
-                                  [Union{Int, Null}, Int, Int, Int, Int, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}, Union{Int, Null}]]
+                                  [Union{Int, Missing}, Int, Int, Int, Int, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}, Union{Int, Missing}]]
 end
 
 @testset "RDatasets: vcd/Bundesliga" begin

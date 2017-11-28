@@ -1,5 +1,5 @@
 function parsesource(source, delim, quotes, escape, comment, encodings, header, skiprows,
-                     types, isnullable, coltypes, colparsers, typeparsers, typedetectrows,
+                     types, allowmissing, coltypes, colparsers, typeparsers, typedetectrows,
                      skipmalformed, trimwhitespace)
 
     currentline = 0
@@ -99,7 +99,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             index2type[i] = String
         end
     end
-    index2nullable = getintdict(isnullable, numcols, colnames)
+    index2missing = getintdict(allowmissing, numcols, colnames)
     index2coltype = getintdict(coltypes, numcols, colnames)
     index2parser::Dict{Int, Function} = getintdict(colparsers, numcols, colnames)
     type2parser::Dict{DataType, Function} = Dict(Int64 => x -> parse(Int64, x),
@@ -130,7 +130,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             elseif haskey(index2parser, col)
                 vals[row, col] = index2parser[col](rawstrings[col][row])
             elseif haskey(index2type, col)
-                vals[row, col] = type2parser[Nulls.T(index2type[col])](rawstrings[col][row])
+                vals[row, col] = type2parser[Missings.T(index2type[col])](rawstrings[col][row])
             else
                 tryint = tryparse(Int, rawstrings[col][row])
                 if !isnull(tryint)
@@ -157,19 +157,19 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             if any(x -> x == String, valtypes[:, col])
                 eltypes[col] = String
                 for (row, v) in enumerate(vals[:, col])
-                    vals[row, col] = isnull(vals[row, col]) ? vals[row, col] : string(vals[row, col])
+                    vals[row, col] = ismissing(vals[row, col]) ? vals[row, col] : string(vals[row, col])
                 end
             else
-                eltypes[col] = promote_type([T for T in valtypes[:, col] if T != Null]...)
+                eltypes[col] = promote_type([T for T in valtypes[:, col] if T != Missing]...)
             end
         end
-        if (haskey(index2nullable, col) && index2nullable[col]) || any(x -> x == Null, valtypes[:, col])
-            eltypes[col] = Union{eltypes[col], Null}
+        if (haskey(index2missing, col) && index2missing[col]) || any(x -> x == Missing, valtypes[:, col])
+            eltypes[col] = Union{eltypes[col], Missing}
         end
     end
-    if any(values(index2nullable)) && !any(isnull, values(encodings))
+    if any(values(index2missing)) && !any(ismissing, values(encodings))
         throw(ArgumentError("""
-                            Nullable columns have been requested but the user has not specified any strings to interpret as null values via the `encodings` argument.
+                            Columns allowing missing values have been requested but the user has not specified any strings to interpret as missing values via the `encodings` argument.
                             """))
     end
 
@@ -189,7 +189,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     # fill in remaining column parsing rules with type rules
     for (i, T) in enumerate(eltypes)
         if !haskey(index2parser, i)
-            index2parser[i] = x -> type2parser[Nulls.T(T)](x)
+            index2parser[i] = x -> type2parser[Missings.T(T)](x)
         end
     end
     #######################################################################################
@@ -211,7 +211,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             continue
         end
         if length(fields) != numcols
-            if eof(source) && isempty(strip(line)) || (!isnull(comment) && startswith(line, comment))
+            if eof(source) && isempty(strip(line)) || (!ismissing(comment) && startswith(line, comment))
                 continue
             else
                 handlemalformed(numcols, length(fields), currentline, skipmalformed, line)

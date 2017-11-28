@@ -50,9 +50,9 @@ julia> uCSV.tovector(uCSV.read(IOBuffer(s)))
 Some examples of what `uCSV.read` can handle:
 
 - String delimiters
-- Unlimited field => value encodings for when you have multiple null-strings, boolean encodings, or other special fields
+- Unlimited field => value encodings for when you have multiple missing-strings, boolean encodings, or other special fields
 - Built-in support for Strings, Ints, Float64s, Symbols, Dates, DateTimes, and Booleans with default formatting rules
-- Flexible methods for manually specifying column types, column nullability, type-specific parsers, column-specific parsers, and columns that should be CategoricalVectors
+- Flexible methods for manually specifying column types, allowing missing values, type-specific parsers, column-specific parsers, and columns that should be CategoricalVectors
 - Commented lines are skipped on request, blank lines skipped by default
 - Ability to skip any rows in the dataset during parsing
 - Ability to skip malformed rows

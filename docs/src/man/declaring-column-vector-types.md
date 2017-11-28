@@ -16,9 +16,9 @@ julia> s =
 
 julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=CategoricalVector)).columns)
 3-element Array{DataType,1}:
- CategoricalArrays.CategoricalValue{String,UInt32}
- CategoricalArrays.CategoricalValue{String,UInt32}
- CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
 
 ```
 
@@ -36,9 +36,9 @@ julia> s =
 
 julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector, 3))).columns)
 3-element Array{DataType,1}:
- CategoricalArrays.CategoricalValue{String,UInt32}
- CategoricalArrays.CategoricalValue{String,UInt32}
- CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
 
 ```
 
@@ -58,7 +58,7 @@ julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=Dict(3 => CategoricalVe
 3-element Array{DataType,1}:
  String
  String
- CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
 
 ```
 
@@ -76,7 +76,7 @@ julia> s =
 
 julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, coltypes=Dict("a" => CategoricalVector))).columns)
 3-element Array{DataType,1}:
- CategoricalArrays.CategoricalValue{String,UInt32}
+ CategoricalArrays.CategoricalString{UInt32}
  String
  String
 

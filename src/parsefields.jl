@@ -33,7 +33,7 @@ function parsefields(line::AbstractString, delim, quotes, escape, trimwhitespace
     return fields, isquoted, badbreak
 end
 
-function parsefields(line::AbstractString, delim, quotes::Null, escape::Null, trimwhitespace::Bool)
+function parsefields(line::AbstractString, delim, quotes::Missing, escape::Missing, trimwhitespace::Bool)
     fields = split(line, delim)
     isquoted = falses(length(fields))
     if trimwhitespace
