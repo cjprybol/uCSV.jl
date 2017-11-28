@@ -1,14 +1,14 @@
 """
     read(input;
          delim=',',
-         quotes=null,
-         escape=null,
-         comment=null,
+         quotes=missing,
+         escape=missing,
+         comment=missing,
          encodings=Dict{String, Any}(),
          header=0,
          skiprows=Vector{Int}(),
          types=Dict{Int,DataType}(),
-         isnullable=Dict{Int,Bool}(),
+         allowmissing=Dict{Int,Bool}(),
          coltypes=Vector,
          colparsers=Dict{Int,Function}(),
          typeparsers=Dict{DataType, Function}(),
@@ -33,13 +33,13 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `delim='|'`
 - `quotes`
     - a `Char` used for quoting fields in the dataset
-    - default: `quotes=null`
+    - default: `quotes=missing`
         - by default, the parser does not check for quotes
     - frequently used:
         - `quotes='"'`
 - `escape`
     - a `Char` used for escaping other reserved parsing characters
-    - default: `escape=null`
+    - default: `escape=missing`
         - by default, the parser does not check for escapes
     - frequently used:
         - `escape='"'`
@@ -51,7 +51,7 @@ Take an input file or IO source and user-defined parsing rules and return:
     - a `Char` or `String` at the beginning of lines that should be skipped as comments
         - note that skipped comment lines do not contribute to the line count for the header
           (if the user requests parsing a header on a specific row) or for skiprows
-    - default: `comment=null`
+    - default: `comment=missing`
         - by default, the parser does not check for comments
     - frequently used:
         - `comment='#'`
@@ -59,14 +59,14 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `comment="#!"`
 - `encodings`
     - a `Dict{String, Any}` mapping parsed fields to Julia values
-        - if your dataset has booleans that are not represented as `"true"` and `"false"` or missing values that you'd like to read as `null`s, you'll need to use this!
+        - if your dataset has booleans that are not represented as `"true"` and `"false"` or missing values that you'd like to read as `missing`s, you'll need to use this!
     - default: `encodings=Dict{String, Any}()`
         - by default, the parser does not check for any reserved fields
     - frequently used:
-        - `encodings=Dict("" => null)`
-        - `encodings=Dict("NA" => null)`
-        - `encodings=Dict("N/A" => null)`
-        - `encodings=Dict("NULL" => null)`
+        - `encodings=Dict("" => missing)`
+        - `encodings=Dict("NA" => missing)`
+        - `encodings=Dict("N/A" => missing)`
+        - `encodings=Dict("NULL" => missing)`
         - `encodings=Dict("TRUE" => true, "FALSE" => false)`
         - `encodings=Dict("True" => true, "False" => false)`
         - `encodings=Dict("T" => true, "F" => false)`
@@ -99,7 +99,7 @@ Take an input file or IO source and user-defined parsing rules and return:
             - scalars will be broadcast to apply to every column of the dataset
         - vector, e.g. `types=[Bool, Int, Float64, String, Symbol, Date, DateTime]`
             - the vector length must match the number of parsed columns
-        - dictionary, e.g. `types=("column1" => Bool)` or `types=(1 => Union{Int, Null})`
+        - dictionary, e.g. `types=("column1" => Bool)` or `types=(1 => Union{Int, Missing})`
             - users can refer to the columns by name (only if a header is provided or
               parsed!) or by index
     - default:
@@ -113,18 +113,17 @@ Take an input file or IO source and user-defined parsing rules and return:
         - `Date` -- only the default date format will work
         - `DateTime` -- only the default datetime format will work
         - for other types or unsupported formats, see `colparsers` and `typeparsers`
-- `isnullable`
-    - declare whether columns should have element-type `Union{T, Null} where T`
-        - boolean scalar, e.g. `isnullable=true`
+- `allowmissing`
+    - declare whether columns should have element-type `Union{T, Missing} where T`
+        - boolean scalar, e.g. `allowmissing=true`
             - scalars will be broadcast to apply to every column of the dataset
-        - vector, e.g. `isnullable=[true, false, true, true]`
+        - vector, e.g. `allowmissing=[true, false, true, true]`
             - the vector length must match the number of parsed columns
-        - dictionary, e.g. `isnullable=("column1" => true)` or `isnullable=(17 => true)`
+        - dictionary, e.g. `allowmissing=("column1" => true)` or `allowmissing=(17 => true)`
             - users can refer to the columns by name (only if a header is provided or
               parsed!) or by index
-    - default: `isnullable=Dict{Int,Bool}()`
-        - column-types are only nullable if null values are detected in rows
-          `1:typedetectrows`
+    - default: `allowmissing=Dict{Int,Bool}()`
+        - Allowing missing values is determined by type detection in rows `1:typedetectrows`
 - `coltypes`
     - declare the type of vector that should be used for columns
     - should work for any AbstractVector that allows `push!`ing values
@@ -184,14 +183,14 @@ Take an input file or IO source and user-defined parsing rules and return:
 
 function read(source::IO;
               delim::Union{Char,String}=',',
-              quotes::Union{Char,Null}=null,
-              escape::Union{Char,Null}=null,
-              comment::Union{Char,String,Null}=null,
+              quotes::Union{Char,Missing}=missing,
+              escape::Union{Char,Missing}=missing,
+              comment::Union{Char,String,Missing}=missing,
               encodings::Dict{String,T} where T=Dict{String,Any}(),
               header::Union{Integer,Vector{String}}=0,
               skiprows::AbstractVector{Int}=Vector{Int}(),
               types::Union{T1,COLMAP{T1},Vector{T1}} where {T1<:Type}=Dict{Int,DataType}(),
-              isnullable::Union{Bool,COLMAP{Bool},Vector{Bool}}=Dict{Int,Bool}(),
+              allowmissing::Union{Bool,COLMAP{Bool},Vector{Bool}}=Dict{Int,Bool}(),
               coltypes::Union{Type{<:AbstractVector},COLMAP{UnionAll},Vector{UnionAll}}=Vector,
               colparsers::Union{F1, COLMAP{F1}, Vector{F1}} where F1=Dict{Int,Function}(),
               typeparsers::Dict{T2, F2} where {T2<:Type, F2}=Dict{DataType, Function}(),
@@ -199,8 +198,8 @@ function read(source::IO;
               skipmalformed::Bool=false,
               trimwhitespace::Bool=false)
 
-        reserved = [x for x in (delim, quotes, escape, comment) if !isnull(x)]
-        if !isnull(quotes) && isequal(quotes, escape)
+        reserved = [x for x in (delim, quotes, escape, comment) if !ismissing(x)]
+        if !ismissing(quotes) && isequal(quotes, escape)
             @assert length(unique(string.(reserved))) == length(reserved) - 1
         else
             @assert length(unique(string.(reserved))) == length(reserved)
@@ -213,11 +212,11 @@ function read(source::IO;
         @assert typedetectrows >= 1
         if typedetectrows > 100
             warn("""
-                 Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `isnullable` arguments instead.
+                 Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `allowmissing` arguments instead.
                  """)
         end
         return parsesource(source, delim, quotes, escape, comment, encodings, header,
-                           skiprows, types, isnullable, coltypes, colparsers, typeparsers,
+                           skiprows, types, allowmissing, coltypes, colparsers, typeparsers,
                            typedetectrows, skipmalformed, trimwhitespace)
 end
 

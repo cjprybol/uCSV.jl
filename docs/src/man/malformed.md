@@ -13,7 +13,6 @@ julia> s =
 
 julia> e = @test_throws ErrorException DataFrame(uCSV.read(IOBuffer(s)))
 Test Passed
-
       Thrown: ErrorException
 
 julia> @test e.value.msg ==

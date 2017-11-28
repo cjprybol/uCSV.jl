@@ -1,7 +1,7 @@
 __precompile__(true)
 module uCSV
 
-using DataFrames, Nulls
+using DataFrames, Missings
 
 COLMAP{T} = Union{Dict{String, T}, Dict{Int, T}}
 

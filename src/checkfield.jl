@@ -55,7 +55,7 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
     end
 end
 
-function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
+function checkfield(field, quotes::Char, escape::Missing, trimwhitespace::Bool)
     isquoted = false
     badbreak = false
     quoteindices = find(c -> c == quotes, field)
@@ -75,7 +75,7 @@ function checkfield(field, quotes::Char, escape::Null, trimwhitespace::Bool)
     return field, isquoted, badbreak
 end
 
-function checkfield(field, quotes::Null, escape::Char, trimwhitespace::Bool)
+function checkfield(field, quotes::Missing, escape::Char, trimwhitespace::Bool)
     isquoted = false
     inquotes = false
     escaped = false

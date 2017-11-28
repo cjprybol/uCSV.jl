@@ -3,7 +3,7 @@ function getintdict(arg::Vector, numcols::Int, colnames::Vector{String})
         throw(ArgumentError("""
                             One of the following user-supplied arguments:
                               1. types
-                              2. isnullable
+                              2. allowmissing
                               3. coltypes
                               4. colparsers
                             was provided as a vector and the length of this vector ($(length(arg))) != the number of detected columns ($numcols).
@@ -17,7 +17,7 @@ function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{Stri
         throw(ArgumentError("""
                             One of the following user-supplied arguments:
                               1. types
-                              2. isnullable
+                              2. allowmissing
                               3. coltypes
                               4. colparsers
                             was provided with column names as Strings that cannot be mapped to column indices because column names have either not been provided or have not been parsed.
@@ -62,7 +62,7 @@ function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmal
     end
 end
 
-function _readline(source, comment::Null)
+function _readline(source, comment::Missing)
     line = readline(source)
     while isempty(line) && !eof(source)
         line = readline(source)
@@ -109,7 +109,7 @@ function tovector(output::Tuple{Vector{Any}, Vector{String}})
 end
 
 function throwbadbreak(location, line, quotes)
-    if isa(quotes, Null)
+    if isa(quotes, Missing)
         throw(ErrorException("""
                              Unexpected field breakpoint detected in $location.
                              line:
@@ -135,7 +135,7 @@ function throwbadconversion(f, currentline, i, encodings, data)
                                1. set `typedetectrows` to a value >= $currentline
                                2. manually specify the element-type of column $i via the `types` argument
                                3. manually specify a parser for column $i via the `parsers` argument
-                               4. if the value is null, setting the `isnullable` argument
+                               4. if the value is missing, setting the `allowmissing` argument
                              """))
     else
         throw(ErrorException("""
@@ -145,7 +145,7 @@ function throwbadconversion(f, currentline, i, encodings, data)
                                1. set `typedetectrows` to a value >= $currentline
                                2. manually specify the element-type of column $i via the `types` argument
                                3. manually specify a parser for column $i via the `parsers` argument
-                               4. if the intended value is null or another special encoding, setting the `encodings` argument appropriately.
+                               4. if the intended value is missing or another special encoding, setting the `encodings` argument appropriately.
                              """))
     end
 end

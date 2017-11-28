@@ -6,7 +6,7 @@ julia> using uCSV, DataFrames, CodecZlib
 
 julia> iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
 
-julia> iris_io = GzipDecompressionStream(open(iris_file));
+julia> iris_io = GzipDecompressorStream(open(iris_file));
 
 julia> DataFrame(uCSV.read(iris_io, header=1))[1:5, :Species]
 5-element Array{String,1}:
