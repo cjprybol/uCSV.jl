@@ -6,7 +6,7 @@ julia> using uCSV, DataFrames, HTTP
 
 julia> html = "https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv";
 
-julia> DataFrame(uCSV.read(HTTP.body(HTTP.get(html)), quotes='"', header=1))
+julia> DataFrame(uCSV.read(IOBuffer(HTTP.get(html).body), quotes='"', header=1))
 5×6 DataFrames.DataFrame
 │ Row │                     │ 1940  │ 1945  │ 1950 │ 1955 │ 1960 │
 ├─────┼─────────────────────┼───────┼───────┼──────┼──────┼──────┤

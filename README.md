@@ -26,4 +26,4 @@ If you find a limitation in capability, a performance bottleneck, a lapse in the
 
 ## Acknowledgements
 
-- [Contributors](https://github.com/cjprybol/uCSV.jl/graphs/contributors)
+[Contributors](https://github.com/cjprybol/uCSV.jl/graphs/contributors)

@@ -50,7 +50,7 @@ end
     """
     @test DataFrame(uCSV.read(IOBuffer(s), header=1)) == DataFrame([["data"]], [:header])
     @test DataFrame(uCSV.read(IOBuffer(s), header=1, skiprows=1:1)) == DataFrame([[]], [:header])
-    @test DataFrame(uCSV.read(IOBuffer(s), skiprows=1:1)) == DataFrame([["data"]])
+    @test DataFrame(uCSV.read(IOBuffer(s), skiprows=1:1)) == DataFrame([["data"]], [:x1])
     @test DataFrame(uCSV.read(IOBuffer(s), skiprows=1:2)) == DataFrame()
 end
 
@@ -644,7 +644,7 @@ end
 
 @testset "Read from URL" begin
     html = "https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv"
-    data, header = uCSV.read(HTTP.body(HTTP.get(html)), quotes='"', header=1)
+    data, header = uCSV.read(IOBuffer(HTTP.get(html).body), quotes='"', header=1)
     @test data == Any[["Food and Tobacco", "Household Operation", "Medical and Health", "Personal Care", "Private Education"],
                       [22.2, 10.5, 3.53, 1.04, 0.341],
                       [44.5, 15.5, 5.76, 1.98, 0.974],
