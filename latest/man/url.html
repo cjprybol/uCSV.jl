@@ -3,7 +3,7 @@
 
 julia&gt; html = &quot;https://raw.github.com/vincentarelbundock/Rdatasets/master/csv/datasets/USPersonalExpenditure.csv&quot;;
 
-julia&gt; DataFrame(uCSV.read(HTTP.body(HTTP.get(html)), quotes=&#39;&quot;&#39;, header=1))
+julia&gt; DataFrame(uCSV.read(IOBuffer(HTTP.get(html).body), quotes=&#39;&quot;&#39;, header=1))
 5×6 DataFrames.DataFrame
 │ Row │                     │ 1940  │ 1945  │ 1950 │ 1955 │ 1960 │
 ├─────┼─────────────────────┼───────┼───────┼──────┼──────┼──────┤
