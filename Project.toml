@@ -1,7 +1,7 @@
 name = "uCSV"
 uuid = "1b8f5f88-aa38-11e8-33f0-475d0ccf3673"
 authors = ["Cameron Prybol <cameron.prybol@gmail.com>"]
-version = "0.1.0"
+version = "0.0.3"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
