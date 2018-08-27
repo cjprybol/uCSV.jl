@@ -180,7 +180,6 @@ Take an input file or IO source and user-defined parsing rules and return:
     - `trimwhitespace=true` will also trim leading and trailing whitespace *WITHIN* quotes
     - default: `trimwhitespace=false`
 """
-
 function read(source::IO;
               delim::Union{Char,String}=',',
               quotes::Union{Char,Missing}=missing,

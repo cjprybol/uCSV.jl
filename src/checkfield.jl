@@ -9,7 +9,7 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
         if escaped
             escaped = false
         elseif !inquotes
-            if trimwhitespace && ismatch(r"\s", string(c))
+            if trimwhitespace && occursin(r"\s", string(c))
                 anyskip = true
                 toskip[i] = true
             elseif c == quotes
@@ -48,8 +48,8 @@ function checkfield(field, quotes::Char, escape::Char, trimwhitespace::Bool)
         return field, isquoted, true
     else
         if anyskip
-            f = field[Int[chr2ind(field, i) for i in find(!, toskip)]]
-            field = SubString(f, start(f), endof(f))
+            f = field[Int[nextind(field, 0, i) for i in findall(!, toskip)]]
+            field = SubString(f, firstindex(f), lastindex(f))
         end
         return field, isquoted, false
     end
@@ -58,7 +58,7 @@ end
 function checkfield(field, quotes::Char, escape::Missing, trimwhitespace::Bool)
     isquoted = false
     badbreak = false
-    quoteindices = find(c -> c == quotes, field)
+    quoteindices = findall(c -> c == quotes, field)
     if length(quoteindices) == 0
         if trimwhitespace
             field = strip(field)
@@ -97,8 +97,9 @@ function checkfield(field, quotes::Missing, escape::Char, trimwhitespace::Bool)
         return field, false, true
     end
     if anyskip
-        f = field[Int[chr2ind(field, i) for i in find(!, toskip)]]
-        field = SubString(f, start(f), endof(f))
+        f = field[Int[nextind(field, 0, i) for i in findall(!, toskip)]]
+
+        field = SubString(f, firstindex(f), lastindex(f))
     end
     if trimwhitespace
         return strip(field), false, false

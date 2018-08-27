@@ -41,7 +41,6 @@ Write a dataset to disk or IO
         - `quotetypes=Any`
             - quote every field in the dataset
 """
-
 function write(fullpath::Union{String, IO};
                header::Union{Vector{String}, Missing}=missing,
                data::Union{Vector{<:Any}, Missing}=missing,
@@ -81,7 +80,7 @@ function write(fullpath::Union{String, IO};
         for row in 1:length(data[1])
             rowvalues = [string(data[col][row]) for col in 1:numcols]
             if !ismissing(quotes)
-                for i in find(e -> e <: quotetypes || (e != Missing && e <: Union{quotetypes, Missing}), eltypes)
+                for i in findall(e -> e <: quotetypes || (e != Missing && e <: Union{quotetypes, Missing}), eltypes)
                     rowvalues[i] = string(quotes, rowvalues[i], quotes)
                 end
             end
@@ -100,7 +99,6 @@ end
 
 Write a DataFrame to disk or IO
 """
-
 function write(fullpath, df::DataFrame; kwargs...)
-    write(fullpath; header = string.(names(df)), data = df.columns, kwargs...)
+    write(fullpath; header = string.(names(df)), data = DataFrames.columns(df), kwargs...)
 end

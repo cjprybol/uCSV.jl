@@ -1,0 +1,10 @@
+name = "uCSV"
+uuid = "1b8f5f88-aa38-11e8-33f0-475d0ccf3673"
+authors = ["Cameron Prybol <cameron.prybol@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Missings = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
+Nullables = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"

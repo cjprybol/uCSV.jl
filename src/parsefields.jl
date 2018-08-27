@@ -2,9 +2,10 @@ function parsefields(line::AbstractString, delim, quotes, escape, trimwhitespace
     fields = SubString{String}[]
     isquoted = falses(0)
     badbreak = false
-    eol = endof(line)
-    fieldstart = start(line)
-    delimrange = search(line, delim, fieldstart)
+    eol = lastindex(line)
+    fieldstart = firstindex(line)
+    # delimrange = search(line, delim, fieldstart)
+    delimrange = something(findnext(isequal(delim), line, fieldstart), 0)
     delimstart, nextfieldstart = first(delimrange), nextind(line, last(delimrange))
     done = false
     while !done
@@ -15,7 +16,8 @@ function parsefields(line::AbstractString, delim, quotes, escape, trimwhitespace
             if delimstart < 1
                 return fields, isquoted, badbreak
             else
-                delimrange = search(line, delim, nextfieldstart)
+                delimrange = something(findnext(isequal(delim), line, nextfieldstart), 0)
+                # delimrange = search(line, delim, nextfieldstart)
                 delimstart, nextfieldstart = first(delimrange), nextind(line, last(delimrange))
                 continue
             end
@@ -27,7 +29,8 @@ function parsefields(line::AbstractString, delim, quotes, escape, trimwhitespace
         else
             fieldstart = nextfieldstart
         end
-        delimrange = search(line, delim, fieldstart)
+        # delimrange = search(line, delim, fieldstart)
+        delimrange = something(findnext(isequal(delim), line, fieldstart), 0)
         delimstart, nextfieldstart = first(delimrange), nextind(line, last(delimrange))
     end
     return fields, isquoted, badbreak

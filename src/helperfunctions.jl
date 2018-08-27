@@ -12,7 +12,7 @@ function getintdict(arg::Vector, numcols::Int, colnames::Vector{String})
     return Dict(i => arg[i] for i in 1:length(arg))
 end
 
-function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{String})
+function getintdict(arg::Dict{String, T}, numcols::Int, colnames::Vector{String}) where T
     if isempty(colnames)
         throw(ArgumentError("""
                             One of the following user-supplied arguments:
@@ -33,7 +33,7 @@ function getintdict{T}(arg::Dict{String, T}, numcols::Int, colnames::Vector{Stri
     end
 end
 
-function getintdict{T}(arg::Dict{Int, T}, numcols::Int, colnames::Vector{String})
+function getintdict(arg::Dict{Int, T}, numcols::Int, colnames::Vector{String}) where T
     return arg
 end
 
@@ -95,7 +95,7 @@ function tomatrix(output::Tuple{Vector{Any}, Vector{String}})
     data = output[1]
     nrows = length(data)
     ncols = length(data[1])
-    m = Array{promote_type(eltype.(data)...)}(nrows, ncols)
+    m = Array{promote_type(eltype.(data)...)}(undef, nrows, ncols)
     for col in 1:ncols
         m[:, col] .= data[col]
     end

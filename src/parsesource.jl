@@ -19,7 +19,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             currentline += 1
         end
         if currentline == 1 && startswith(line, "\ufeff")
-            line = replace(line, "\ufeff", "")
+            line = replace(line, "\ufeff" => "")
         end
         if currentline == header
             fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
@@ -41,7 +41,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     #######################################################################################
     numcols = 0
     rawstrings = Vector{Vector{SubString{String}}}()
-    isquoted = Vector{Bool}(numcols)
+    isquoted = Vector{Bool}(undef, numcols)
     currentline = 0
     # lines parsed for type detection
     linesparsed = 0
@@ -49,7 +49,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
         line = _readline(source, comment)
         currentline += 1
         if currentline == 1 && startswith(line, "\ufeff")
-            line = replace(line, "\ufeff", "")
+            line = replace(line, "\ufeff" => "")
         end
         fields, quoted, badbreak = parsefields(line, delim, quotes, escape, trimwhitespace)
         if eof(source) && length(fields) == 1 && isempty(fields[1]) && currentline == 1
@@ -120,7 +120,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     @assert all(v -> isa(v, Function), values(type2parser))
     @assert all(v -> isa(v, Function), values(index2parser))
 
-    vals = Array{Any, 2}(linesparsed, numcols)
+    vals = Array{Any, 2}(undef, linesparsed, numcols)
 
     # convert parsed fields from raw strings to correct types based on user-requests and defaults
     for col in 1:numcols
@@ -133,13 +133,13 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                 vals[row, col] = type2parser[Missings.T(index2type[col])](rawstrings[col][row])
             else
                 tryint = tryparse(Int, rawstrings[col][row])
-                if !isnull(tryint)
-                    vals[row, col] = get(tryint)
+                if tryint != nothing
+                    vals[row, col] = tryint
                     continue
                 end
                 tryfloat = tryparse(Float64, rawstrings[col][row])
-                if !isnull(tryfloat)
-                    vals[row, col] = get(tryfloat)
+                if tryfloat != nothing
+                    vals[row, col] = tryfloat
                     continue
                 end
                 vals[row, col] = String(rawstrings[col][row])
@@ -149,7 +149,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     # determine the type of each column of data based on parsed data and user-specified types
     valtypes = typeof.(vals)
-    eltypes = Vector{Type}(size(vals, 2))
+    eltypes = Vector{Type}(undef, size(vals, 2))
     for col in 1:length(eltypes)
         if haskey(index2type, col)
             eltypes[col] = index2type[col]
