@@ -18,11 +18,11 @@ os:
 notifications:
   email: false
 
-before_script:
-  - export PATH=$HOME/.local/bin:$PATH
+# before_script:
+#   - export PATH=$HOME/.local/bin:$PATH
 
 script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  # - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'using Pkg; Pkg.add("uCSV"); Pkg.build("uCSV"); Pkg.test("uCSV", coverage=true)'
 
 after_success:
