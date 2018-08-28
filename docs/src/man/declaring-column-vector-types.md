@@ -14,7 +14,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=CategoricalVector)).columns)
+julia> eltype.(DataFrames.columns(DataFrame(uCSV.read(IOBuffer(s), coltypes=CategoricalVector))))
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalString{UInt32}
  CategoricalArrays.CategoricalString{UInt32}
@@ -34,7 +34,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector, 3))).columns)
+julia> eltype.(DataFrames.columns(DataFrame(uCSV.read(IOBuffer(s), coltypes=fill(CategoricalVector, 3)))))
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalString{UInt32}
  CategoricalArrays.CategoricalString{UInt32}
@@ -54,7 +54,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), coltypes=Dict(3 => CategoricalVector))).columns)
+julia> eltype.(DataFrames.columns(DataFrame(uCSV.read(IOBuffer(s), coltypes=Dict(3 => CategoricalVector)))))
 3-element Array{DataType,1}:
  String
  String
@@ -74,7 +74,7 @@ julia> s =
        a,b,c
        """;
 
-julia> eltype.(DataFrame(uCSV.read(IOBuffer(s), header=1, coltypes=Dict("a" => CategoricalVector))).columns)
+julia> eltype.(DataFrames.columns(DataFrame(uCSV.read(IOBuffer(s), header=1, coltypes=Dict("a" => CategoricalVector)))))
 3-element Array{DataType,1}:
  CategoricalArrays.CategoricalString{UInt32}
  String

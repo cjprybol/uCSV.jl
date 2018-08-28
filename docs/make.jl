@@ -31,7 +31,7 @@ makedocs(
 
 deploydocs(
     repo = "github.com/cjprybol/uCSV.jl.git",
-    julia = "0.6",
+    julia = "1.0",
     target = "build",
     deps = nothing,
     make = nothing)

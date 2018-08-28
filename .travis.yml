@@ -11,9 +11,9 @@ os:
   - linux
   - osx
 
-matrix:
- allow_failures:
- - julia: nightly
+# matrix:
+#  allow_failures:
+#  - julia: nightly
 
 notifications:
   email: false
@@ -23,8 +23,8 @@ before_script:
 
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'using Pkg; Pkg.add("uCSV"); Pkg.build("uCSV"); Pkg.test("uCSV"; coverage=true)'
+  - julia -e 'using Pkg; Pkg.add("uCSV"); Pkg.build("uCSV"); Pkg.test("uCSV", coverage=true)'
 
 after_success:
-  - julia -e 'using Pkg; cd(Pkg.dir("uCSV")); Pkg.add("Documenter"); Pkg.add("DataFrames"); Pkg.add("CodecZlib"); Pkg.add("Missings"); Pkg.add("CategoricalArrays"); include(joinpath("docs", "make.jl"))'
-  - julia -e 'using Pkg; cd(Pkg.dir("uCSV")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
+  - julia -e 'using Pkg; cd(dirname(dirname(pathof(uCSV)))); Pkg.add("Documenter"); Pkg.add("DataFrames"); Pkg.add("CodecZlib"); Pkg.add("Missings"); Pkg.add("CategoricalArrays"); include(joinpath("docs", "make.jl"))'
+  - julia -e 'using Pkg; cd(dirname(dirname(pathof(uCSV)))); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'

@@ -11,7 +11,7 @@ julia> s =
        19,97;3,14;999
        """;
 
-julia> imperialize(x) = parse(Float64, replace(x, ',', '.'))
+julia> imperialize(x) = parse(Float64, replace(x, ',' => '.'))
 imperialize (generic function with 1 method)
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', types=Dict(1 => Float64, 2 => Float64), typeparsers=Dict(Float64 => x -> imperialize(x))))
@@ -31,7 +31,7 @@ julia> s =
        19,97;3,14;999
        """;
 
-julia> imperialize(x) = parse(Float64, replace(x, ',', '.'))
+julia> imperialize(x) = parse(Float64, replace(x, ',' => '.'))
 imperialize (generic function with 1 method)
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', colparsers=Dict(1 => x -> imperialize(x), 2 => x -> imperialize(x))))

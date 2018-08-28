@@ -203,7 +203,7 @@ true
 
 Dates that are parseable with the default formatting
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, Dates
 
 julia> s =
        """
@@ -226,7 +226,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Date))
 
 Specifying column types in conjunction with declaring a type-specific parser function
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, Dates
 
 julia> s =
        """
@@ -243,7 +243,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), types=Date, typeparsers=Dict(Date => x -
 
 Specifying a column-specific parser function
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, Dates
 
 julia> s =
        """
@@ -262,7 +262,7 @@ julia> DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 => x -> Date(x, "m/d/y
 
 The same techniques demonstrated for other types also apply here.
 ```jldoctest
-julia> using uCSV, DataFrames
+julia> using uCSV, DataFrames, Dates
 
 julia> s =
        """

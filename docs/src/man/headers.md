@@ -18,7 +18,7 @@ julia> data
 3-element Array{Any,1}:
  [1, 2, 3]
  [1.0, 2.0, 3.0]
- String["a", "b", "c"]
+ ["a", "b", "c"]
 
 julia> header
 3-element Array{String,1}:
@@ -45,7 +45,7 @@ julia> data
 3-element Array{Any,1}:
  [1, 2, 3]
  [1.0, 2.0, 3.0]
- String["a", "b", "c"]
+ ["a", "b", "c"]
 
 julia> header
 3-element Array{String,1}:
