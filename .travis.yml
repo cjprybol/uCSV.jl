@@ -4,8 +4,8 @@ language: julia
 
 julia:
   - 0.7
-  - 1.0
-  - nightly
+  # - 1
+  # - nightly
 
 os:
   - linux
@@ -17,9 +17,6 @@ os:
 
 notifications:
   email: false
-
-script:
-  - julia -e 'using Pkg; Pkg.build(); Pkg.test()'
 
 after_success:
   - julia -e 'using Pkg; cd(dirname(dirname(pathof(uCSV)))); Pkg.add("Documenter"); Pkg.add("DataFrames"); Pkg.add("CodecZlib"); Pkg.add("Missings"); Pkg.add("CategoricalArrays"); include(joinpath("docs", "make.jl"))'

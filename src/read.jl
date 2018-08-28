@@ -156,7 +156,7 @@ Take an input file or IO source and user-defined parsing rules and return:
         - column parsers are determined based on user-specified types and those
           detected from the data
     - frequently used:
-        - `typeparsers=Dict(Float64 => x -> parse(Float64, replace(x, ',', '.')))` # decimal-comma floats!
+        - `typeparsers=Dict(Float64 => x -> parse(Float64, replace(x, ',' => '.')))` # decimal-comma floats!
 - `typedetectrows`
     - specify how many rows of data to read before interpretting the values that each
       column should take on
@@ -211,7 +211,7 @@ function read(source::IO;
         @assert typedetectrows >= 1
         if typedetectrows > 100
             warn("""
-                 Large values for `typedetectrows` will reduce performance. Consider using a lower value and specifying column-types via the `types` and `allowmissing` arguments instead.
+                 Large values for `typedetectrows` will reduce performance. Consider manually declaring the types of columns using the `types` argument instead.
                  """)
         end
         return parsesource(source, delim, quotes, escape, comment, encodings, header,

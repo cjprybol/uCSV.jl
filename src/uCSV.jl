@@ -2,7 +2,6 @@ __precompile__(true)
 module uCSV
 
 using DataFrames
-using Missings
 using Dates
 
 COLMAP{T} = Union{Dict{String, T}, Dict{Int, T}}
