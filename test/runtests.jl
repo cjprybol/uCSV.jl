@@ -1629,11 +1629,12 @@ end
 
 @testset "Performance_2017Q2.txt.gz" begin
     f = joinpath(files, "Performance_2017Q2.txt.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), delim='|', allowmissing=true, encodings=Dict("" => missing), typedetectrows=429, types=Dict(27 => Union{Float64, Missing})))
+    # manually declare Float64 for consistency across 32 & 64 bit CI testing
+    df = DataFrame(uCSV.read(GDS(open(f)), delim='|', allowmissing=true, encodings=Dict("" => missing), types=Dict(1 => Float64, 5 => Float64, 6 => Float64, 7 => Float64, 8 => Float64, 10 => Float64, 11 => String, 13 => Float64, 14 => String, 27 => Float64, 29 => String)))
     @test names(df) == [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9, :x10, :x11, :x12, :x13, :x14, :x15, :x16, :x17, :x18, :x19, :x20, :x21, :x22, :x23, :x24, :x25, :x26, :x27, :x28, :x29, :x30, :x31]
     @test size(df) == (4932157, 31)
     @test typeof.(DataFrames.columns(df)) == [Vector{T} for T in
-                                  [Union{Missing, Int64}, Union{Missing, String}, Union{Missing, String}, Union{Missing, Float64}, Union{Missing, Float64}, Union{Missing, Int64}, Union{Missing, Int64}, Union{Missing, Int64}, Union{Missing, String}, Union{Missing, Int64}, Union{Missing, String}, Union{Missing, String}, Union{Missing, Int64}, Union{Missing, String}, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Union{Missing, Float64}, Missing, Union{Missing, String}, Missing, Union{Missing, String}]]
+                                  [Union{Missing, Float64}, Union{Missing, String}, Union{Missing, String}, Union{Missing, Float64}, Union{Missing, Float64}, Union{Missing, Float64}, Union{Missing,Float64}, Union{Missing, Float64}, Union{Missing, String}, Union{Missing, Float64}, Union{Missing, String}, Union{Missing, String}, Union{Missing, Float64}, Union{Missing, String}, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Missing, Union{Missing, Float64}, Missing, Union{Missing, String}, Missing, Union{Missing, String}]]
 end
 
 @testset "RDatasets: COUNT/loomis" begin
