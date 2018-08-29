@@ -3,7 +3,7 @@
 `uCSV.write` supports writing generic datasets as well as writing `DataFrames`
 
 ```jldoctest
-julia> using uCSV, DataFrames, CodecZlib, Missings
+julia> using uCSV, DataFrames, CodecZlib
 
 julia> df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
 
@@ -46,7 +46,7 @@ Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
 
 Users can specify delimiters other than `','`
 ```jldoctest
-julia> using uCSV, DataFrames, CodecZlib, Missings
+julia> using uCSV, DataFrames, CodecZlib
 
 julia> df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
 
@@ -67,7 +67,7 @@ Id	SepalLengthCm	SepalWidthCm	PetalLengthCm	PetalWidthCm	Species
 
 Quotes can also be requested, and by default they apply only to `String` (and `Union{String, Missing}`) columns and the header
 ```jldoctest
-julia> using uCSV, DataFrames, CodecZlib, Missings
+julia> using uCSV, DataFrames, CodecZlib
 
 julia> df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
 
@@ -120,7 +120,7 @@ julia> for line in readlines(open(outpath))[1:5]
 
 To quote every field in the dataset or other custom rules, use the `quotetypes` argument
 ```jldoctest
-julia> using uCSV, DataFrames, CodecZlib, Missings
+julia> using uCSV, DataFrames, CodecZlib
 
 julia> df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz"))), header=1));
 

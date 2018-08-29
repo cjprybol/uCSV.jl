@@ -10,7 +10,7 @@ All runs are done *WITHOUT* warmups or precompiling. Reading CSV files in Julia 
 
 All data will be read into equivalent DataFrames
 ```julia
-using uCSV, CSV, TextParse, CodecZlib, Missings, DataFrames, Base.Test
+using uCSV, CSV, TextParse, CodecZlib, DataFrames, Base.Test
 GDS = GzipDecompressorStream;
 
 function textparse2DF(x)

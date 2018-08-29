@@ -130,7 +130,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             elseif haskey(index2parser, col)
                 vals[row, col] = index2parser[col](rawstrings[col][row])
             elseif haskey(index2type, col)
-                vals[row, col] = type2parser[Missings.T(index2type[col])](rawstrings[col][row])
+                vals[row, col] = type2parser[Core.Compiler.typesubtract(index2type[col], Missing)](rawstrings[col][row])
             else
                 tryint = tryparse(Int, rawstrings[col][row])
                 if tryint != nothing
@@ -189,7 +189,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     # fill in remaining column parsing rules with type rules
     for (i, T) in enumerate(eltypes)
         if !haskey(index2parser, i)
-            index2parser[i] = x -> type2parser[Missings.T(T)](x)
+            index2parser[i] = x -> type2parser[Core.Compiler.typesubtract(T, Missing)](x)
         end
     end
     #######################################################################################
