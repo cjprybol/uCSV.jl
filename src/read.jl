@@ -210,9 +210,9 @@ function read(source::IO;
         end
         @assert typedetectrows >= 1
         if typedetectrows > 100
-            warn("""
-                 Large values for `typedetectrows` will reduce performance. Consider manually declaring the types of columns using the `types` argument instead.
-                 """)
+            @warn """
+                  Large values for `typedetectrows` will reduce performance. Consider manually declaring the types of columns using the `types` argument instead.
+                  """
         end
         return parsesource(source, delim, quotes, escape, comment, encodings, header,
                            skiprows, types, allowmissing, coltypes, colparsers, typeparsers,

@@ -175,7 +175,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
 
     # create typed data columns and fill the columns with data parsed while detecting types
     n = size(vals, 1)
-    data = [get(index2coltype, i, Vector){T}(n) for (i, T) in enumerate(eltypes)]
+    data = [get(index2coltype, i, Vector){T}(undef, n) for (i, T) in enumerate(eltypes)]
     for (col, T) in enumerate(eltypes)
         if T == String
             for (row, val) in enumerate(vals[:, col])
