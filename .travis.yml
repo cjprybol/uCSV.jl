@@ -4,7 +4,7 @@ language: julia
 
 julia:
   - 0.7
-  # - 1
+  - 1
   # - nightly
 
 os:

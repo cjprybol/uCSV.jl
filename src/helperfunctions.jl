@@ -24,7 +24,7 @@ function getintdict(arg::Dict{String, T}, numcols::Int, colnames::Vector{String}
                             """))
     end
     if all(k -> in(k, colnames), keys(arg))
-        return Dict(findfirst(colnames, k) => v for (k,v) in arg)
+        return Dict(something(findfirst(isequal(colnames), k), 0) => v for (k,v) in arg)
     else
         k = first(filter(k -> !in(k, colnames), collect(keys(arg))))
         throw(ArgumentError("""
@@ -43,9 +43,9 @@ end
 
 function handlemalformed(expected::Int, observed::Int, currentline::Int, skipmalformed::Bool, line)
     if skipmalformed
-        warn("""
-             Parsed $observed fields on row $currentline. Expected $expected. Skipping...
-             """)
+        @warn """
+              Parsed $observed fields on row $currentline. Expected $expected. Skipping...
+              """
     else
         throw(ErrorException("""
                          Parsed $observed fields on row $currentline. Expected $expected.
