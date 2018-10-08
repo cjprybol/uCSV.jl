@@ -898,6 +898,18 @@ if Sys.WORD_SIZE == 64 && !Sys.iswindows()
 
         rm(outpath)
     end
+
+    @testset "Writing and reading specific types to and from disk" begin
+        # Create data and write to disk
+        data = DataFrame(dt=[Date(2018,10,8)])
+        outpath = joinpath(dirname(files), "test.tsv")
+        uCSV.write(outpath, data; header=String.(names(data)), delim='\t')
+
+        # Read data from disk
+        data2 = DataFrame(uCSV.read(outpath; delim='\t', header=1, types=Dict("dt" => Date)))
+        @test eltype(data2[:dt]) == Date  # False. Should be true.
+        rm(outpath)
+    end
 end
 
 @testset "2010_BSA_Carrier_PUF.csv.gz" begin
@@ -2400,16 +2412,4 @@ end
     @test size(df) == (18, 8)
     @test typeof.(DataFrames.columns(df)) == [Vector{T} for T in
                                   [String, String, String, Int, Int, Int, Int, Int]]
-end
-
-@testset "Writing and reading specific types to and from disk" begin
-    # Create data and write to disk
-    data = DataFrame(dt=[Date(2018,10,8)])
-    outpath = joinpath(dirname(files), "test.tsv")
-    uCSV.write(outpath, data; header=String.(names(data)), delim='\t')
-
-    # Read data from disk
-    data2 = DataFrame(uCSV.read(outpath; delim='\t', header=1, types=Dict("dt" => Date)))
-    @test eltype(data2[:dt]) == Date  # False. Should be true.
-    rm(outpath)
 end
