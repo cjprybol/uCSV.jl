@@ -111,6 +111,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
                                                  Symbol => x -> Symbol(string(x)),
                                                  Bool => x -> parse(Bool, x))
 
+    # allow user defined type-parsers to override defaults in type2parser
     for (T, Func) in typeparsers
         type2parser[T] = Func
     end
