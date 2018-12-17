@@ -12,9 +12,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s)))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```
 
@@ -30,9 +31,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim=' '))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```
 
@@ -48,9 +50,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim='\t'))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```
 
@@ -66,9 +69,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim="||"))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```
 
@@ -84,9 +88,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim='˚'))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```
 
@@ -102,8 +107,9 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim="≤≥"))
 1×3 DataFrames.DataFrame
-│ Row │ x1 │ x2 │ x3 │
-├─────┼────┼────┼────┤
-│ 1   │ 1  │ 2  │ 3  │
+│ Row │ x1    │ x2    │ x3    │
+│     │ Int64 │ Int64 │ Int64 │
+├─────┼───────┼───────┼───────┤
+│ 1   │ 1     │ 2     │ 3     │
 
 ```

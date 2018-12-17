@@ -12,9 +12,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), comment='#'))
 1×1 DataFrames.DataFrame
-│ Row │ x1   │
-├─────┼──────┤
-│ 1   │ data │
+│ Row │ x1     │
+│     │ String │
+├─────┼────────┤
+│ 1   │ data   │
 
 ```
 
@@ -30,9 +31,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), skiprows=1:1))
 1×1 DataFrames.DataFrame
-│ Row │ x1   │
-├─────┼──────┤
-│ 1   │ data │
+│ Row │ x1     │
+│     │ String │
+├─────┼────────┤
+│ 1   │ data   │
 
 ```
 
@@ -98,6 +100,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), comment='#', header=1, skiprows=1:1))
 1×1 DataFrames.DataFrame
 │ Row │ I'm the header │
+│     │ String         │
 ├─────┼────────────────┤
 │ 1   │ included data  │
 
@@ -117,6 +120,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), skiprows=1:3))
 1×1 DataFrames.DataFrame
 │ Row │ x1            │
+│     │ String        │
 ├─────┼───────────────┤
 │ 1   │ included data │
 

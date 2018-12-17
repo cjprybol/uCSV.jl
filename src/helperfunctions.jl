@@ -78,15 +78,15 @@ function _readline(source, comment)
     return line
 end
 
-function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}})
+function DataFrames.DataFrame(output::Tuple{Vector{Any}, Vector{String}}; kwargs...)
     data = output[1]
     header = output[2]
     if isempty(header)
-        return DataFrames.DataFrame(data, Symbol.(["x$i" for i in 1:length(data)]))
+        return DataFrames.DataFrame(data, Symbol.(["x$i" for i in 1:length(data)]); kwargs...)
     elseif isempty(data)
-        return DataFrames.DataFrame(Any[[] for i in 1:length(header)], Symbol.(header))
+        return DataFrames.DataFrame(Any[[] for i in 1:length(header)], Symbol.(header); kwargs...)
     else
-        return DataFrames.DataFrame(data, Symbol.(header))
+        return DataFrames.DataFrame(data, Symbol.(header); kwargs...)
     end
 end
 

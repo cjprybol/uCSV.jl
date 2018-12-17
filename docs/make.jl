@@ -1,12 +1,12 @@
-using Documenter, uCSV
+using Documenter, uCSV, Pkg
 
 makedocs(
-    root = Pkg.dir("uCSV", "docs"),
+    root = joinpath(dirname(dirname(pathof(uCSV))), "docs"),
     source = "src",
     build = "build",
     doctest = true,
     modules = [uCSV],
-    format   = :html,
+    format   = Documenter.HTML(prettyurls = false),
     sitename = "uCSV.jl",
     checkdocs = :all,
     debug = true,
@@ -31,7 +31,6 @@ makedocs(
 
 deploydocs(
     repo = "github.com/cjprybol/uCSV.jl.git",
-    julia = "1.0",
     target = "build",
     deps = nothing,
     make = nothing)

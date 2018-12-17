@@ -17,6 +17,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), types=Bool))
 2×1 DataFrames.DataFrame
 │ Row │ x1    │
+│     │ Bool  │
 ├─────┼───────┤
 │ 1   │ true  │
 │ 2   │ false │
@@ -36,6 +37,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), types=[Bool]))
 2×1 DataFrames.DataFrame
 │ Row │ x1    │
+│     │ Bool  │
 ├─────┼───────┤
 │ 1   │ true  │
 │ 2   │ false │
@@ -55,6 +57,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Bool)))
 2×1 DataFrames.DataFrame
 │ Row │ x1    │
+│     │ Bool  │
 ├─────┼───────┤
 │ 1   │ true  │
 │ 2   │ false │
@@ -107,6 +110,7 @@ Dict{String,Bool} with 7 entries:
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=merge(trues, falses)))
 14×1 DataFrames.DataFrame
 │ Row │ x1    │
+│     │ Bool  │
 ├─────┼───────┤
 │ 1   │ true  │
 │ 2   │ false │
@@ -140,13 +144,14 @@ julia> s =
 
 julia> df = DataFrame(uCSV.read(IOBuffer(s), types=Symbol))
 3×1 DataFrames.DataFrame
-│ Row │ x1 │
-├─────┼────┤
-│ 1   │ x1 │
-│ 2   │ y7 │
-│ 3   │ µ∆ │
+│ Row │ x1     │
+│     │ Symbol │
+├─────┼────────┤
+│ 1   │ x1     │
+│ 2   │ y7     │
+│ 3   │ µ∆     │
 
-julia> eltype.(df.columns) == [Symbol]
+julia> eltype.(DataFrames.columns(df)) == [Symbol]
 true
 
 ```
@@ -164,13 +169,14 @@ julia> s =
 
 julia> df = DataFrame(uCSV.read(IOBuffer(s), types=[Symbol]))
 3×1 DataFrames.DataFrame
-│ Row │ x1 │
-├─────┼────┤
-│ 1   │ x1 │
-│ 2   │ y7 │
-│ 3   │ µ∆ │
+│ Row │ x1     │
+│     │ Symbol │
+├─────┼────────┤
+│ 1   │ x1     │
+│ 2   │ y7     │
+│ 3   │ µ∆     │
 
-julia> eltype.(df.columns) == [Symbol]
+julia> eltype.(DataFrames.columns(df)) == [Symbol]
 true
 
 ```
@@ -188,13 +194,14 @@ julia> s =
 
 julia> df = DataFrame(uCSV.read(IOBuffer(s), types=Dict(1 => Symbol)))
 3×1 DataFrames.DataFrame
-│ Row │ x1 │
-├─────┼────┤
-│ 1   │ x1 │
-│ 2   │ y7 │
-│ 3   │ µ∆ │
+│ Row │ x1     │
+│     │ Symbol │
+├─────┼────────┤
+│ 1   │ x1     │
+│ 2   │ y7     │
+│ 3   │ µ∆     │
 
-julia> eltype.(df.columns) == [Symbol]
+julia> eltype.(DataFrames.columns(df)) == [Symbol]
 true
 
 ```
@@ -213,6 +220,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), types=Date))
 1×1 DataFrames.DataFrame
 │ Row │ x1         │
+│     │ Dates.Date │
 ├─────┼────────────┤
 │ 1   │ 2013-01-01 │
 
@@ -236,6 +244,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), types=Date, typeparsers=Dict(Date => x -> Date(x, "m/d/y"))))
 1×1 DataFrames.DataFrame
 │ Row │ x1         │
+│     │ Dates.Date │
 ├─────┼────────────┤
 │ 1   │ 0036-12-24 │
 
@@ -253,6 +262,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), colparsers=Dict(1 => x -> Date(x, "m/d/y"))))
 1×1 DataFrames.DataFrame
 │ Row │ x1         │
+│     │ Dates.Date │
 ├─────┼────────────┤
 │ 1   │ 0036-12-24 │
 
@@ -283,6 +293,7 @@ datetimeparser (generic function with 1 method)
 julia> DataFrame(uCSV.read(IOBuffer(s), colparsers=(x -> datetimeparser(x))))
 3×1 DataFrames.DataFrame
 │ Row │ x1                      │
+│     │ Dates.DateTime          │
 ├─────┼─────────────────────────┤
 │ 1   │ 2015-01-01T00:00:00     │
 │ 2   │ 2015-01-02T00:00:01     │

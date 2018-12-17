@@ -838,12 +838,12 @@ end
 
 @testset "Read Iris" begin
     df = DataFrame(uCSV.read(GzipDecompressorStream(open(joinpath(files, "iris.csv.gz"))), header=1))
-    @test head(df, 1) == DataFrame(Id = 1,
-                                   SepalLengthCm = 5.1,
-                                   SepalWidthCm = 3.5,
-                                   PetalLengthCm = 1.4,
-                                   PetalWidthCm = 0.2,
-                                   Species = "Iris-setosa")
+    @test first(df, 1) == DataFrame(Id = 1,
+                                    SepalLengthCm = 5.1,
+                                    SepalWidthCm = 3.5,
+                                    PetalLengthCm = 1.4,
+                                    PetalWidthCm = 0.2,
+                                    Species = "Iris-setosa")
 end
 
 
@@ -1018,7 +1018,7 @@ end
 
 @testset "METARs.csv.gz" begin
     f = joinpath(files, "METARs.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=6))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=6), makeunique=true)
     @test names(df) == [:raw_text, :station_id, :observation_time, :latitude, :longitude, :temp_c, :dewpoint_c, :wind_dir_degrees, :wind_speed_kt, :wind_gust_kt, :visibility_statute_mi, :altim_in_hg, :sea_level_pressure_mb, :corrected, :auto, :auto_station, :maintenance_indicator_on, :no_signal, :lightning_sensor_off, :freezing_rain_sensor_off, :present_weather_sensor_off, :wx_string, :sky_cover, :cloud_base_ft_agl, :sky_cover_1, :cloud_base_ft_agl_1, :sky_cover_2, :cloud_base_ft_agl_2, :sky_cover_3, :cloud_base_ft_agl_3, :flight_category, :three_hr_pressure_tendency_mb, :maxT_c, :minT_c, :maxT24hr_c, :minT24hr_c, :precip_in, :pcp3hr_in, :pcp6hr_in, :pcp24hr_in, :snow_in, :vert_vis_ft, :metar_type, :elevation_m]
     @test size(df) == (2, 44)
     @test typeof.(DataFrames.columns(df)) == [Vector{T} for T in
@@ -1047,7 +1047,7 @@ end
 @testset "PIREPs.csv.gz" begin
     f = joinpath(files, "PIREPs.csv.gz")
     # TODO read receipt_time & observation_time as datetimes
-    df = DataFrame(uCSV.read(GDS(open(f)), header=6, encodings=Dict("" => missing), typedetectrows=1000))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=6, encodings=Dict("" => missing), typedetectrows=1000), makeunique=true)
     @test names(df) == [:receipt_time, :observation_time, :mid_point_assumed, :no_time_stamp, :flt_lvl_range, :above_ground_level_indicated, :no_flt_lvl, :bad_location, :aircraft_ref, :latitude, :longitude, :altitude_ft_msl, :sky_cover, :cloud_base_ft_msl, :cloud_top_ft_msl, :sky_cover_1, :cloud_base_ft_msl_1, :cloud_top_ft_msl_1, :turbulence_type, :turbulence_intensity, :turbulence_base_ft_msl, :turbulence_top_ft_msl, :turbulence_freq, :turbulence_type_1, :turbulence_intensity_1, :turbulence_base_ft_msl_1, :turbulence_top_ft_msl_1, :turbulence_freq_1, :icing_type, :icing_intensity, :icing_base_ft_msl, :icing_top_ft_msl, :icing_type_1, :icing_intensity_1, :icing_base_ft_msl_1, :icing_top_ft_msl_1, :visibility_statute_mi, :wx_string, :temp_c, :wind_dir_degrees, :wind_speed_kt, :vert_gust_kt, :report_type, :raw_text]
     @test size(df) == (1000, 44)
     @test typeof.(DataFrames.columns(df)) == [Vector{T} for T in
@@ -1112,7 +1112,7 @@ end
 
 @testset "baseball.csv.gz" begin
     f = joinpath(files, "baseball.csv.gz")
-    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=35, encodings=Dict("" => missing)))
+    df = DataFrame(uCSV.read(GDS(open(f)), header=1, typedetectrows=35, encodings=Dict("" => missing)), makeunique=true)
     @test names(df) == [:Rk, :Year, :Age, :Tm, :Lg, Symbol(""), :W, :L, Symbol("W-L%"), :G, :Finish, :Wpost, :Lpost, Symbol("W-L%post"), :_1]
     @test size(df) == (35, 15)
     @test typeof.(DataFrames.columns(df)) == [Vector{T} for T in

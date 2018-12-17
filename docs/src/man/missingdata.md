@@ -20,14 +20,15 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, typedetectrows=3))
 6×3 DataFrames.DataFrame
-│ Row │ x1 │ x2      │ x3 │
-├─────┼────┼─────────┼────┤
-│ 1   │ 1  │ hey     │ 1  │
-│ 2   │ 2  │ you     │ 2  │
-│ 3   │ 3  │ missing │ 3  │
-│ 4   │ 4  │ missing │ 4  │
-│ 5   │ 5  │ missing │ 5  │
-│ 6   │ 6  │ missing │ 6  │
+│ Row │ x1    │ x2      │ x3    │
+│     │ Int64 │ String⍰ │ Int64 │
+├─────┼───────┼─────────┼───────┤
+│ 1   │ 1     │ hey     │ 1     │
+│ 2   │ 2     │ you     │ 2     │
+│ 3   │ 3     │ missing │ 3     │
+│ 4   │ 4     │ missing │ 4     │
+│ 5   │ 5     │ missing │ 5     │
+│ 6   │ 6     │ missing │ 6     │
 
 ```
 
@@ -49,14 +50,15 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=true))
 6×3 DataFrames.DataFrame
-│ Row │ x1 │ x2      │ x3 │
-├─────┼────┼─────────┼────┤
-│ 1   │ 1  │ hey     │ 1  │
-│ 2   │ 2  │ you     │ 2  │
-│ 3   │ 3  │ missing │ 3  │
-│ 4   │ 4  │ missing │ 4  │
-│ 5   │ 5  │ missing │ 5  │
-│ 6   │ 6  │ missing │ 6  │
+│ Row │ x1     │ x2      │ x3     │
+│     │ Int64⍰ │ String⍰ │ Int64⍰ │
+├─────┼────────┼─────────┼────────┤
+│ 1   │ 1      │ hey     │ 1      │
+│ 2   │ 2      │ you     │ 2      │
+│ 3   │ 3      │ missing │ 3      │
+│ 4   │ 4      │ missing │ 4      │
+│ 5   │ 5      │ missing │ 5      │
+│ 6   │ 6      │ missing │ 6      │
 
 ```
 
@@ -78,14 +80,15 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=[false, true, false]))
 6×3 DataFrames.DataFrame
-│ Row │ x1 │ x2      │ x3 │
-├─────┼────┼─────────┼────┤
-│ 1   │ 1  │ hey     │ 1  │
-│ 2   │ 2  │ you     │ 2  │
-│ 3   │ 3  │ missing │ 3  │
-│ 4   │ 4  │ missing │ 4  │
-│ 5   │ 5  │ missing │ 5  │
-│ 6   │ 6  │ missing │ 6  │
+│ Row │ x1    │ x2      │ x3    │
+│     │ Int64 │ String⍰ │ Int64 │
+├─────┼───────┼─────────┼───────┤
+│ 1   │ 1     │ hey     │ 1     │
+│ 2   │ 2     │ you     │ 2     │
+│ 3   │ 3     │ missing │ 3     │
+│ 4   │ 4     │ missing │ 4     │
+│ 5   │ 5     │ missing │ 5     │
+│ 6   │ 6     │ missing │ 6     │
 
 ```
 
@@ -107,14 +110,15 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, allowmissing=Dict(2 => true)))
 6×3 DataFrames.DataFrame
-│ Row │ x1 │ x2      │ x3 │
-├─────┼────┼─────────┼────┤
-│ 1   │ 1  │ hey     │ 1  │
-│ 2   │ 2  │ you     │ 2  │
-│ 3   │ 3  │ missing │ 3  │
-│ 4   │ 4  │ missing │ 4  │
-│ 5   │ 5  │ missing │ 5  │
-│ 6   │ 6  │ missing │ 6  │
+│ Row │ x1    │ x2      │ x3    │
+│     │ Int64 │ String⍰ │ Int64 │
+├─────┼───────┼─────────┼───────┤
+│ 1   │ 1     │ hey     │ 1     │
+│ 2   │ 2     │ you     │ 2     │
+│ 3   │ 3     │ missing │ 3     │
+│ 4   │ 4     │ missing │ 4     │
+│ 5   │ 5     │ missing │ 5     │
+│ 6   │ 6     │ missing │ 6     │
 
 ```
 
@@ -137,14 +141,15 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, header=1, allowmissing=Dict("b" => true)))
 6×3 DataFrames.DataFrame
-│ Row │ a │ b       │ c │
-├─────┼───┼─────────┼───┤
-│ 1   │ 1 │ hey     │ 1 │
-│ 2   │ 2 │ you     │ 2 │
-│ 3   │ 3 │ missing │ 3 │
-│ 4   │ 4 │ missing │ 4 │
-│ 5   │ 5 │ missing │ 5 │
-│ 6   │ 6 │ missing │ 6 │
+│ Row │ a     │ b       │ c     │
+│     │ Int64 │ String⍰ │ Int64 │
+├─────┼───────┼─────────┼───────┤
+│ 1   │ 1     │ hey     │ 1     │
+│ 2   │ 2     │ you     │ 2     │
+│ 3   │ 3     │ missing │ 3     │
+│ 4   │ 4     │ missing │ 4     │
+│ 5   │ 5     │ missing │ 5     │
+│ 6   │ 6     │ missing │ 6     │
 
 ```
 
@@ -166,13 +171,14 @@ julia> encodings = Dict("" => missing, "\"\"" => missing, "NULL" => missing, "NA
 
 julia> DataFrame(uCSV.read(IOBuffer(s), encodings=encodings, types=Dict(2 => Union{String, Missing})))
 6×3 DataFrames.DataFrame
-│ Row │ x1 │ x2      │ x3 │
-├─────┼────┼─────────┼────┤
-│ 1   │ 1  │ hey     │ 1  │
-│ 2   │ 2  │ you     │ 2  │
-│ 3   │ 3  │ missing │ 3  │
-│ 4   │ 4  │ missing │ 4  │
-│ 5   │ 5  │ missing │ 5  │
-│ 6   │ 6  │ missing │ 6  │
+│ Row │ x1    │ x2      │ x3    │
+│     │ Int64 │ String⍰ │ Int64 │
+├─────┼───────┼─────────┼───────┤
+│ 1   │ 1     │ hey     │ 1     │
+│ 2   │ 2     │ you     │ 2     │
+│ 3   │ 3     │ missing │ 3     │
+│ 4   │ 4     │ missing │ 4     │
+│ 5   │ 5     │ missing │ 5     │
+│ 6   │ 6     │ missing │ 6     │
 
 ```
