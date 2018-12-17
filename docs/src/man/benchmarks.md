@@ -20,7 +20,7 @@ end
 
 ### [Iris](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/iris.csv.gz)
 ```julia
-iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
+iris_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "iris.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
 @time df2 = CSV.read(GDS(open(iris_file)), types=Dict(6=>String));
 @time df3 = textparse2DF(csvread(GDS(open(iris_file)), pooledstrings=false));
@@ -28,7 +28,7 @@ iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
 ```
 
 ```julia
-julia> iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
+julia> iris_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "iris.csv.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(iris_file)), header=1));
   2.883561 seconds (2.16 M allocations: 112.477 MiB, 1.57% gc time)
@@ -46,7 +46,7 @@ Test Passed
 
 ### [0s-1s](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/0s-1s.csv.gz)
 ```julia
-ints_file = joinpath(Pkg.dir("uCSV"), "test", "data", "0s-1s.csv.gz");
+ints_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "0s-1s.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(ints_file)), header=1));
 @time df2 = CSV.read(GDS(open(ints_file)));
 @time df3 = textparse2DF(csvread(GDS(open(ints_file))));
@@ -54,7 +54,7 @@ ints_file = joinpath(Pkg.dir("uCSV"), "test", "data", "0s-1s.csv.gz");
 ```
 
 ```julia
-julia> ints_file = joinpath(Pkg.dir("uCSV"), "test", "data", "0s-1s.csv.gz");
+julia> ints_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "0s-1s.csv.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(ints_file)), header=1));
   5.227549 seconds (13.26 M allocations: 673.321 MiB, 3.64% gc time)
@@ -72,7 +72,7 @@ Test Passed
 
 ### [Flights](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/2010_BSA_Carrier_PUF.csv.gz)
 ```julia
-carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
+carrier_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict("" => missing), types=Dict(3 =>  Union{String, Missing})));
 @time df2 = CSV.read(GDS(open(carrier_file)), types=Dict(3 => Union{String, Missing}, 4 => String, 5 => String, 8 => String));
 # I was unable to get TextParse.jl to read this file correctly
@@ -82,7 +82,7 @@ carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.c
 ```
 
 ```julia
-julia> carrier_file = joinpath(Pkg.dir("uCSV"), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
+julia> carrier_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "2010_BSA_Carrier_PUF.csv.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(carrier_file)), header=1, typedetectrows=2, encodings=Dict("" => missing), types=Dict(3 =>  Union{String, Missing})));
  30.019385 seconds (97.68 M allocations: 4.060 GiB, 34.44% gc time)
@@ -106,7 +106,7 @@ Test Passed
 
 ### [Human Genome Feature Format](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/Homo_sapiens.GRCh38.90.gff3.gz)
 ```julia
-genome_file = joinpath(Pkg.dir("uCSV"), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
+genome_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(genome_file)), delim='\t', comment='#', types=Dict(1 => String)));
 @time df2 = CSV.read(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), delim='\t', types=Dict(1 => String, 2 => String, 3 => String, 6 => String, 7 => String, 8 => String, 9 => String), header=[:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9]);
 @test_broken df3 = textparse2DF(csvread(IOBuffer(join(filter(line -> !startswith(line, '#'), readlines(GDS(open(genome_file)))), '\n')), '\t', pooledstrings=false));
@@ -114,7 +114,7 @@ genome_file = joinpath(Pkg.dir("uCSV"), "test", "data", "Homo_sapiens.GRCh38.90.
 ```
 
 ```julia
-julia> genome_file = joinpath(Pkg.dir("uCSV"), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
+julia> genome_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "Homo_sapiens.GRCh38.90.gff3.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(genome_file)), delim='\t', comment='#', types=Dict(1 => String)));
  28.335226 seconds (94.83 M allocations: 4.768 GiB, 41.27% gc time)
@@ -131,7 +131,7 @@ Test Passed
 
 ### [Country Indicators](https://github.com/cjprybol/uCSV.jl/blob/master/test/data/indicators.csv.gz)
 ```julia
-indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz");
+indicators_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "indicators.csv.gz");
 @time df1 = DataFrame(uCSV.read(GDS(open(indicators_file)), quotes='"'));
 @time df2 = CSV.read(GDS(open(indicators_file)), header=[:x1, :x2, :x3, :x4, :x5, :x6], types=Dict(1 => String, 2 => String, 3 => String, 4 => String));
 @time df3 = textparse2DF(csvread(GDS(open(indicators_file)), pooledstrings=false, header_exists=false, colnames=[:x1, :x2, :x3, :x4, :x5, :x6]));
@@ -141,7 +141,7 @@ indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz")
 ```
 
 ```julia
-julia> indicators_file = joinpath(Pkg.dir("uCSV"), "test", "data", "indicators.csv.gz");
+julia> indicators_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "indicators.csv.gz");
 
 julia> @time df1 = DataFrame(uCSV.read(GDS(open(indicators_file)), quotes='"'));
  38.058086 seconds (149.67 M allocations: 7.614 GiB, 47.15% gc time)

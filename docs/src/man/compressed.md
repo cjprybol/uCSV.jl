@@ -4,7 +4,7 @@ Using the [TranscodingStreams.jl](https://github.com/bicycle1885/TranscodingStre
 ```jldoctest
 julia> using uCSV, DataFrames, CodecZlib
 
-julia> iris_file = joinpath(Pkg.dir("uCSV"), "test", "data", "iris.csv.gz");
+julia> iris_file = joinpath(dirname(dirname(pathof(uCSV))), "test", "data", "iris.csv.gz");
 
 julia> iris_io = GzipDecompressorStream(open(iris_file));
 

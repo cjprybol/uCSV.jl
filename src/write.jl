@@ -42,8 +42,8 @@ Write a dataset to disk or IO
             - quote every field in the dataset
 """
 function write(fullpath::Union{String, IO};
-               header::Union{Vector{String}, Missing}=missing,
-               data::Union{Vector{<:Any}, Missing}=missing,
+               header::Union{AbstractVector{String}, Missing}=missing,
+               data::Union{AbstractVector{<:Any}, Missing}=missing,
                delim::Union{Char, String}=',',
                quotes::Union{Char, Missing}=missing,
                quotetypes::Type=AbstractString)

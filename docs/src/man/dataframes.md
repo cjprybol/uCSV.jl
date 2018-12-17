@@ -21,12 +21,12 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s)))
 3×3 DataFrames.DataFrame
-│ Row │ x1  │ x2  │ x3  │
-├─────┼─────┼─────┼─────┤
-│ 1   │ 1.0 │ 1.0 │ 1.0 │
-│ 2   │ 2.0 │ 2.0 │ 2.0 │
-│ 3   │ 3.0 │ 3.0 │ 3.0 │
-
+│ Row │ x1      │ x2      │ x3      │
+│     │ Float64 │ Float64 │ Float64 │
+├─────┼─────────┼─────────┼─────────┤
+│ 1   │ 1.0     │ 1.0     │ 1.0     │
+│ 2   │ 2.0     │ 2.0     │ 2.0     │
+│ 3   │ 3.0     │ 3.0     │ 3.0     │
 ```
 
 And again, but with a header
@@ -43,10 +43,11 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s), header = 1))
 3×3 DataFrames.DataFrame
-│ Row │ c1 │ c2  │ c3 │
-├─────┼────┼─────┼────┤
-│ 1   │ 1  │ 1.0 │ a  │
-│ 2   │ 2  │ 2.0 │ b  │
-│ 3   │ 3  │ 3.0 │ c  │
+│ Row │ c1    │ c2      │ c3     │
+│     │ Int64 │ Float64 │ String │
+├─────┼───────┼─────────┼────────┤
+│ 1   │ 1     │ 1.0     │ a      │
+│ 2   │ 2     │ 2.0     │ b      │
+│ 3   │ 3     │ 3.0     │ c      │
 
 ```

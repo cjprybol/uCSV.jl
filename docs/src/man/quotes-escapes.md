@@ -13,9 +13,10 @@ julia> s =
 
 julia> DataFrame(uCSV.read(IOBuffer(s)))
 1×6 DataFrames.DataFrame
-│ Row │ x1 │ x2   │ x3         │ x4 │ x5 │ x6     │
-├─────┼────┼──────┼────────────┼────┼────┼────────┤
-│ 1   │ "I │ have │ delimiters │ in │ my │ field" │
+│ Row │ x1     │ x2     │ x3         │ x4     │ x5     │ x6     │
+│     │ String │ String │ String     │ String │ String │ String │
+├─────┼────────┼────────┼────────────┼────────┼────────┼────────┤
+│ 1   │ "I     │ have   │ delimiters │ in     │ my     │ field" │
 
 ```
 
@@ -31,6 +32,7 @@ julia> s =
 julia> DataFrame(uCSV.read(IOBuffer(s), quotes='"'))
 1×1 DataFrames.DataFrame
 │ Row │ x1                            │
+│     │ String                        │
 ├─────┼───────────────────────────────┤
 │ 1   │ I,have,delimiters,in,my,field │
 
@@ -54,6 +56,7 @@ julia> for p in players
 julia> DataFrame(uCSV.read(IOBuffer(join(players, '\n')), quotes='"', escape='"'))
 2×1 DataFrames.DataFrame
 │ Row │ x1                           │
+│     │ String                       │
 ├─────┼──────────────────────────────┤
 │ 1   │ Rich "Goose" Gossage         │
 │ 2   │ Henry "Hammerin' Hank" Aaron │
@@ -78,6 +81,7 @@ julia> for p in players
 julia> DataFrame(uCSV.read(IOBuffer(join(players, '\n')), quotes='"', escape='\\'))
 2×1 DataFrames.DataFrame
 │ Row │ x1                           │
+│     │ String                       │
 ├─────┼──────────────────────────────┤
 │ 1   │ Rich "Goose" Gossage         │
 │ 2   │ Henry "Hammerin' Hank" Aaron │

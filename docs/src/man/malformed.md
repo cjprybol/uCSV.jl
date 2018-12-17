@@ -3,7 +3,7 @@
 In really large and messy datasets, you may just want to skip the malformed rows
 
 ```jldoctest
-julia> using uCSV, DataFrames, Base.Test
+julia> using uCSV, DataFrames, Test
 
 julia> s =
        """
@@ -30,12 +30,13 @@ julia> @test e.value.msg ==
        """
 Test Passed
 
-
 julia> DataFrame(uCSV.read(IOBuffer(s), skipmalformed=true))
-WARNING: Parsed 2 fields on row 2. Expected 1. Skipping...
+┌ Warning: Parsed 2 fields on row 2. Expected 1. Skipping...
+└ @ uCSV ~/.julia/dev/uCSV/src/helperfunctions.jl:46
 1×1 DataFrames.DataFrame
-│ Row │ x1 │
-├─────┼────┤
-│ 1   │ 1  │
+│ Row │ x1    │
+│     │ Int64 │
+├─────┼───────┤
+│ 1   │ 1     │
 
 ```

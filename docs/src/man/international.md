@@ -16,9 +16,10 @@ imperialize (generic function with 1 method)
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', types=Dict(1 => Float64, 2 => Float64), typeparsers=Dict(Float64 => x -> imperialize(x))))
 1×3 DataFrames.DataFrame
-│ Row │ x1    │ x2   │ x3  │
-├─────┼───────┼──────┼─────┤
-│ 1   │ 19.97 │ 3.14 │ 999 │
+│ Row │ x1      │ x2      │ x3    │
+│     │ Float64 │ Float64 │ Int64 │
+├─────┼─────────┼─────────┼───────┤
+│ 1   │ 19.97   │ 3.14    │ 999   │
 
 ```
 
@@ -36,7 +37,9 @@ imperialize (generic function with 1 method)
 
 julia> DataFrame(uCSV.read(IOBuffer(s), delim=';', colparsers=Dict(1 => x -> imperialize(x), 2 => x -> imperialize(x))))
 1×3 DataFrames.DataFrame
-│ Row │ x1    │ x2   │ x3  │
-├─────┼───────┼──────┼─────┤
-│ 1   │ 19.97 │ 3.14 │ 999 │
+│ Row │ x1      │ x2      │ x3    │
+│     │ Float64 │ Float64 │ Int64 │
+├─────┼─────────┼─────────┼───────┤
+│ 1   │ 19.97   │ 3.14    │ 999   │
+
 ```
