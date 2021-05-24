@@ -100,5 +100,5 @@ end
 Write a DataFrame to disk or IO
 """
 function write(fullpath, df::DataFrame; kwargs...)
-    write(fullpath; header = string.(names(df)), data = DataFrames.columns(df), kwargs...)
+    write(fullpath; header = string.(names(df)), data = collect(DataFrames.eachcol(df)), kwargs...)
 end
