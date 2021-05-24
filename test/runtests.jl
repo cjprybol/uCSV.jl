@@ -887,12 +887,12 @@ if Sys.WORD_SIZE == 64 && !Sys.iswindows()
         uCSV.write(outpath, df, quotes='"', quotetypes=Real)
         @test hash(read(open(outpath), String)) == 0xd6276abc14f24a7a
 
-        df[6] = convert(Vector{Union{String, Missing}}, df[6]);
-        df[6][2:3] .= missing;
+        df[!, 6] = convert(Vector{Union{String, Missing}}, df[!, 6]);
+        df[!, 6][2:3] .= missing;
         uCSV.write(outpath, df, quotes='"')
         @test hash(read(open(outpath), String)) == 0x76b9d2c96afcb277
 
-        df[6] = missings(size(df, 1));
+        df[!, 6] = missings(size(df, 1));
         uCSV.write(outpath, df, quotes='"')
         @test hash(read(open(outpath), String)) == 0xd9a646014e50fb75
 
@@ -907,7 +907,7 @@ if Sys.WORD_SIZE == 64 && !Sys.iswindows()
 
         # Read data from disk
         data2 = DataFrame(uCSV.read(outpath; delim='\t', header=1, types=Dict("dt" => Date)))
-        @test eltype(data2[:dt]) == Date  # False. Should be true.
+        @test eltype(data2[!, :dt]) == Date  # False. Should be true.
         rm(outpath)
     end
 end
