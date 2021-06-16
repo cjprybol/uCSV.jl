@@ -1,3 +1,11 @@
+# fix taken from https://github.com/JuliaData/CSV.jl/blob/5729e9e52f8a34c132779f01871a5d99d02634c9/src/utils.jl#L214
+# https://github.com/JuliaData/CSV.jl/issues/744
+if applicable(Core.Compiler.typesubtract, Union{Int, Missing}, Missing)
+	ts(T, S) = Core.Compiler.typesubtract(T, S)
+else
+	ts(T, S) = Core.Compiler.typesubtract(T, S, 16)
+end
+
 function parsesource(source, delim, quotes, escape, comment, encodings, header, skiprows,
                      types, allowmissing, coltypes, colparsers, typeparsers, typedetectrows,
                      skipmalformed, trimwhitespace)
@@ -131,7 +139,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
             elseif haskey(index2parser, col)
                 vals[row, col] = index2parser[col](rawstrings[col][row])
             elseif haskey(index2type, col)
-                vals[row, col] = type2parser[Core.Compiler.typesubtract(index2type[col], Missing)](rawstrings[col][row])
+                vals[row, col] = type2parser[ts(index2type[col], Missing)](rawstrings[col][row])
             else
                 tryint = tryparse(Int, rawstrings[col][row])
                 if tryint != nothing
@@ -190,7 +198,7 @@ function parsesource(source, delim, quotes, escape, comment, encodings, header, 
     # fill in remaining column parsing rules with type rules
     for (i, T) in enumerate(eltypes)
         if !haskey(index2parser, i)
-            index2parser[i] = x -> type2parser[Core.Compiler.typesubtract(T, Missing)](x)
+            index2parser[i] = x -> type2parser[ts(T, Missing)](x)
         end
     end
     #######################################################################################
